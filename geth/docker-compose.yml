@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  ethereum-node:
+    container_name: ethereum-node
+    env_file:
+      - .env
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        - ACCOUNT_PASSWORD=${ACCOUNT_PASSWORD}
+        - PRIVATECHAIN_PATH=${PRIVATECHAIN_PATH}
+    ports:
+      - '30303:30303'
+      - '8545:8545'
+    command: 
+      --datadir=${PRIVATECHAIN_PATH}
+      --nodekeyhex="b0ac22adcad37213c7c565810a50f1772291e7b0ce53fb73e7ec2a3c75bc13b5"
+      --nodiscover
+      --networkid=${NETWORK_ID}
+      --allow-insecure-unlock
+      --http
+      --http.addr="0.0.0.0"
+      --http.api="eth,web3,net,admin,personal"
+      --http.corsdomain="*"
+      --mine
+      --miner.threads=1

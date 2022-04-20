@@ -1,0 +1,28 @@
+[package]
+name = "rocket_web3_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = { version = "0.5.0-rc.1", default-features = false, features = [ "tls", "json"] }
+jsonwebtoken = "8.0.1"
+bcrypt = "0.12.1"
+chrono = { version = "0.4.19", features = ["serde"]}
+web3 = "0.18.0"
+hex = "0.4.3"
+secp256k1 = "0.21.3"
+sha2 = "0.10.2"
+uuid = "0.8.2"
+schemars = "0.8"
+okapi = { version = "0.6.0-alpha-1" }
+rocket_okapi = { version = "0.8.0-alpha-1", features = ["swagger"] }
+lazy_static = "1.4.0"
+async-std = "1.11.0"
+serial_test = "0.6.0"
+
+[dependencies.mongodb]
+version = "2.1.0"
+default-features = false
+features = ["async-std-runtime"]
