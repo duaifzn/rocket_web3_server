@@ -1,1 +1,2 @@
 pub mod proof_of_existence_interface;
+pub mod proof_of_existence_by_vault_interface;

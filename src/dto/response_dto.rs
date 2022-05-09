@@ -50,3 +50,45 @@ pub struct Sha256HashDto{
 pub struct SendHashDto{
     pub tx_hash: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct VaultAccountDto{
+    pub request_id: String,
+    pub lease_id: String,
+    pub renewable: bool,
+    pub lease_duration: u32,
+    pub data: VaultAccountDataDto,
+    pub wrap_info: Option<String>,
+    pub warnings: Option<String>,
+    pub auth: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct VaultAccountDataDto{
+    pub address: String,
+    pub name: String
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct VaultSignDto{
+    pub request_id: String,
+    pub lease_id: String,
+    pub renewable: bool,
+    pub lease_duration: u32,
+    pub data: VaultSignDataDto,
+    pub wrap_info: Option<String>,
+    pub warnings: Option<String>,
+    pub auth: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct VaultSignDataDto{
+    pub from_address: String,
+    pub name: String,
+    pub signed_transaction: String,
+    pub to_address: Option<String>
+}

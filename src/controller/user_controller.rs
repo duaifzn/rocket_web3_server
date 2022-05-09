@@ -8,6 +8,7 @@ use crate::util::auth::{auth_token_generate};
 use crate::util::eth_node::EthNode;
 use crate::middleware::auth_guard::Token;
 use crate::contract_interface::proof_of_existence_interface::ProofOfExistence;
+use crate::util::vault::Vault;
 use sha2::{Sha256, Digest};
 use uuid::Uuid;
 use rocket_okapi::{openapi};
@@ -19,7 +20,7 @@ pub fn index(token: Token<'_>) -> &'static str {
 }
 #[openapi]
 #[post("/signup", data="<user>")]
-pub async fn signup_one_user(db: &State<Mongo>,user: Json<UserDto>) -> Json<ApiResponse<CreateOneUserDto>>{
+pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, user: Json<UserDto>) -> Json<ApiResponse<CreateOneUserDto>>{
     let is_duplicate = find_one_user(db, &user).await;
     match is_duplicate{
         Ok(result) =>{ 
@@ -32,6 +33,17 @@ pub async fn signup_one_user(db: &State<Mongo>,user: Json<UserDto>) -> Json<ApiR
                 })
             }
         },
+        Err(err) => return Json(ApiResponse{
+            success: false,
+            code: 500,
+            json: None,
+            message: Some(err.to_string())
+        })
+    }
+    let vault_res = vault.create_one_account(&user.email.clone()).await;
+    println!("{:?}", vault_res);
+    match vault_res{
+        Ok(_) => {},
         Err(err) => return Json(ApiResponse{
             success: false,
             code: 500,
@@ -91,58 +103,4 @@ pub async fn signin_one_user(db: &State<Mongo>,user: Json<UserDto>) -> Json<ApiR
             message: Some(err.to_string())
         })
     }
-}
-
-#[openapi]
-#[get("/hash", data="<raw>")]
-pub async fn sha256_hash(raw: Json<RawDto>) ->Json<ApiResponse<Sha256HashDto>>{
-    let mut hasher = Sha256::new();
-    hasher.update(raw.raw_data.as_bytes());
-    let done = hasher.finalize();
-    let hash_data = format!("{:X}", done);
-    Json(ApiResponse{
-            success: true,
-            code: 200,
-            json: Some(Sha256HashDto{
-                hash_data: hash_data
-            }),
-            message: None
-        })
-}
-
-#[openapi]
-#[post("/hash", data="<hash>")]
-pub async fn send_hash(eth_node: &State<EthNode>, hash: Json<HashDto>) ->Json<ApiResponse<SendHashDto>>{
-    let contract = eth_node.connect_contract_of_proof_of_existence(&hash.address.to_owned()).await;
-    let contract_interface = ProofOfExistence{
-        contract: contract
-    };
-
-    let new_uuid = Uuid::new_v4().to_string();
-    let mut hasher = Sha256::new();
-    hasher.update(new_uuid.as_bytes());
-    let done = hasher.finalize();
-    let new_uuid_sha256 = format!("{:X}", done);
-
-    let response = contract_interface.notarize_hash(
-        &hash.private_key.to_owned(),
-        &new_uuid_sha256, 
-        &hash.hash_data.to_owned()).await;
-    match response{
-        Ok(result) => Json(ApiResponse{
-                success: true,
-                code: 200,
-                json: Some(SendHashDto{
-                    tx_hash: format!("{:#x}", result)
-                }),
-                message: None
-            }),
-        Err(err) => Json(ApiResponse{
-            success: false,
-            code: 400,
-            json: None,
-            message: Some(err.to_string())
-        }),
-    }
-
 }

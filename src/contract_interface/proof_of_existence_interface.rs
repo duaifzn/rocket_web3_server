@@ -8,6 +8,8 @@ use web3::transports::Http;
 use web3::types::{H160, H256};
 use web3::signing::SecretKeyRef;
 use web3::Error::Decoder;
+
+use crate::dto::raw_transaction::RawTransaction;
 pub struct ProofOfExistence{
     pub contract: Contract<Http>,
 }
