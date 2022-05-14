@@ -77,3 +77,9 @@ pub struct TransferOwnershipDto{
     pub account_name: String,
     pub target_address: String
 }
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct DeployContractDto{
+    pub account_name: String,
+}

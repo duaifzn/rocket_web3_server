@@ -29,6 +29,13 @@ async fn rocket() -> _{
             controller::contract_controller::sha256_hash,
             controller::contract_controller::send_hash,
             controller::contract_controller::is_issuer,
+            controller::contract_controller::add_issuer,
+            controller::contract_controller::notarize_hash,
+            controller::contract_controller::get_hash,
+            controller::contract_controller::revoke_hash,
+            controller::contract_controller::del_issuer,
+            controller::contract_controller::transfer_ownership,
+            controller::contract_controller::deploy_contract,
         ])
         .mount(
             "/swagger-ui/",

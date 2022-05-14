@@ -9,4 +9,5 @@ import path from "path";
                 {encoding:'utf8'})
     );
     writeFileSync('./abi.json',JSON.stringify(contractJson.abi), {encoding: 'utf8'})
+    writeFileSync('./bytecode.json',JSON.stringify(contractJson.bytecode), {encoding: 'utf8'})
 })()

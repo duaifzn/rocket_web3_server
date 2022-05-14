@@ -28,12 +28,8 @@ impl ProofOfExistence{
         if bytes32.len() > 32{
             return Err(Decoder("bytes lengh > 32!".to_string()));
         }
-        let temp = String::from_utf8(bytes32);
-        let string = match temp{
-            Ok(result) => result,
-            Err(err) => return Err(Decoder(err.to_string()))
-        };
-        Ok(string.trim_matches(char::from(0)).to_string())
+        let string = hex::encode(bytes32);
+        Ok(string)
     }
     pub async fn notarize_hash(&self, private_key: &str,  key: &str, value: &str) ->web3::Result<H256>{
         let key_bytes32 = Token::FixedBytes(ProofOfExistence::hex_str_to_bytes32(key)?);

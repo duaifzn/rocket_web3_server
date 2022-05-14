@@ -1,0 +1,22 @@
+### vault
+
+POST http://localhost:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B62/sign-tx HTTP/1.1
+Authorization: Bearer s.9ajvNBkgKrdOOi4g08tSuLTR
+Content-Type: application/json
+
+{
+    "address_to": "0xeA4c45d4e0f2517016774f7ce45B03606B753aE8",
+    "data": "877b9a67000000000000000000000000fb4c5d29b78083905617092a105b41cd327365ef",
+    "encoding": "hex",
+    "amount": "0",
+    "nonce": "2",
+    "gas_limit": "6000000",
+    "gas_price": "1",
+    "chainID": "1337"
+}
+
+###
+
+GET http://localhost:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B62 HTTP/1.1
+Authorization: Bearer s.9ajvNBkgKrdOOi4g08tSuLTR
+Content-Type: application/json

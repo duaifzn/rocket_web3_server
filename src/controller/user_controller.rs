@@ -3,14 +3,10 @@ use rocket::serde::json::Json;
 use crate::dto::request_dto::{UserDto, RawDto, HashDto};
 use crate::database::Mongo;
 use crate::service::user_service::{insert_one_user, verify_one_user, find_one_user};
-use crate::dto::response_dto::{ApiResponse, CreateOneUserDto, SigninOneUserDto, Sha256HashDto, SendHashDto};
+use crate::dto::response_dto::{ApiResponse, CreateOneUserDto, SigninOneUserDto};
 use crate::util::auth::{auth_token_generate};
-use crate::util::eth_node::EthNode;
 use crate::middleware::auth_guard::Token;
-use crate::contract_interface::proof_of_existence_interface::ProofOfExistence;
 use crate::util::vault::Vault;
-use sha2::{Sha256, Digest};
-use uuid::Uuid;
 use rocket_okapi::{openapi};
 
 #[openapi]
@@ -19,9 +15,9 @@ pub fn index(token: Token<'_>) -> &'static str {
     "Hello, world!"
 }
 #[openapi]
-#[post("/signup", data="<user>")]
-pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, user: Json<UserDto>) -> Json<ApiResponse<CreateOneUserDto>>{
-    let is_duplicate = find_one_user(db, &user).await;
+#[post("/signup", data="<body>")]
+pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, body: Json<UserDto>) -> Json<ApiResponse<CreateOneUserDto>>{
+    let is_duplicate = find_one_user(db, &body).await;
     match is_duplicate{
         Ok(result) =>{ 
             if result{
@@ -40,7 +36,7 @@ pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, user: Json
             message: Some(err.to_string())
         })
     }
-    let vault_res = vault.create_one_account(&user.email.clone()).await;
+    let vault_res = vault.create_one_account(&body.email.clone()).await;
     println!("{:?}", vault_res);
     match vault_res{
         Ok(_) => {},
@@ -51,7 +47,7 @@ pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, user: Json
             message: Some(err.to_string())
         })
     }
-    let data = insert_one_user(db, user).await;
+    let data = insert_one_user(db, body).await;
     match data{
         Ok(result) => Json(ApiResponse{
             success: true,
@@ -71,9 +67,9 @@ pub async fn signup_one_user(db: &State<Mongo>, vault: &State<Vault>, user: Json
 }
 
 #[openapi]
-#[post("/signin", data="<user>")]
-pub async fn signin_one_user(db: &State<Mongo>,user: Json<UserDto>) -> Json<ApiResponse<SigninOneUserDto>>{
-    let data = verify_one_user(db, user).await;
+#[post("/signin", data="<body>")]
+pub async fn signin_one_user(db: &State<Mongo>, body: Json<UserDto>) -> Json<ApiResponse<SigninOneUserDto>>{
+    let data = verify_one_user(db, body).await;
     match data{
         Ok(result) => {
             if result{

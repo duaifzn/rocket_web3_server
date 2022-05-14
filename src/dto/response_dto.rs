@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::Cursor;
 use rocket::serde::{Serialize, Deserialize, json};
 use rocket::response;
@@ -5,6 +6,7 @@ use rocket::request::Request;
 use rocket::response::{Responder, Response};
 use rocket::http::{ContentType};
 use schemars::JsonSchema;
+
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct ApiResponse<T>{
@@ -91,4 +93,29 @@ pub struct VaultSignDataDto{
     pub name: String,
     pub signed_transaction: String,
     pub to_address: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct TxAddressDto{
+    pub tx_address: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct BoolDto{
+    pub result: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct HashValueDto{
+    pub hash_value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct ContractAddressDto{
+    pub tx_address: Option<String>,
+    pub contract_address: Option<String>,
 }

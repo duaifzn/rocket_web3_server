@@ -41,28 +41,52 @@ Content-Type: application/json
 
 ###
 
-POST http://127.0.0.1:8000/api/contract/isIssuer HTTP/1.1
+GET http://127.0.0.1:8000/api/contract/isIssuer HTTP/1.1
 Content-Type: application/json
 
 {
-    "address": "0xeA4c45d4e0f2517016774f7ce45B03606B753aE8",
+    "address": "0x0a3bbbf6596eb5671df75e14bbc629eebbb9c23c",
     "account_name": "duaifzn123@gmail.com",
-    "hash_data": "85777F270AD7CF2A790981BBAE3C4E484A1DC55E24A77390D692FBF1CFFA12FA"
+    "target_address": "0xFB4c5d29B78083905617092A105b41Cd327365Ef"
 }
 
-### vault
-
-POST http://localhost:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B62/sign-tx HTTP/1.1
-Authorization: Bearer s.9ajvNBkgKrdOOi4g08tSuLTR
+###0x3ea02c2c76bced0e4c51bebb9aabd6cb66b28c07682be996341920126a389cca
+###
+POST http://127.0.0.1:8000/api/contract/addIssuer HTTP/1.1
 Content-Type: application/json
 
 {
-    "address_to": "0xeA4c45d4e0f2517016774f7ce45B03606B753aE8",
-    "data": "877b9a67000000000000000000000000fb4c5d29b78083905617092a105b41cd327365ef",
-    "encoding": "hex",
-    "amount": "0",
-    "nonce": "2",
-    "gas_limit": "6000000",
-    "gas_price": "1",
-    "chainID": "1337"
+    "address": "0x096A37b3Ca5d96d3b251825291a10a92164cAcAf",
+    "account_name": "duaifzn123@gmail.com",
+    "target_address": "0xed2d160c638ebe1c3c3d120fcc0df8719d7c685e"
 }
+
+###
+POST http://127.0.0.1:8000/api/contract/notarizeHash HTTP/1.1
+Content-Type: application/json
+
+{
+    "address": "0xb9ee715cdfca2fe5fdbaab9feace3b6f7bb11f4f",
+    "account_name": "duaifzn123@gmail.com",
+    "key": "test32111",
+    "value": "test456"
+}
+
+###
+GET http://127.0.0.1:8000/api/contract/getHash HTTP/1.1
+Content-Type: application/json
+
+{
+    "address": "0xb9ee715cdfca2fe5fdbaab9feace3b6f7bb11f4f",
+    "account_name": "duaifzn123@gmail.com",
+    "key": "test32111"
+}
+
+###
+POST http://127.0.0.1:8000/api/contract/deployContract HTTP/1.1
+Content-Type: application/json
+
+{
+    "account_name": "duaifzn123@gmail.com"
+}
+###0xc7ed5464e24ec0685e8b26605ef26e85f60c1dbf7e61da3fcd1cba168a6216f5

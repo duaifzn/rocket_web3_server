@@ -1,3 +1,4 @@
+use crate::model::contract_model::ContractSchema;
 use crate::model::user_model::UserSchema;
 use mongodb::{Client, options::ClientOptions};
 use mongodb::Collection;
@@ -7,6 +8,7 @@ lazy_static!{
 }
 pub struct Mongo{
     pub User: Collection<UserSchema>,
+    pub Contract: Collection<ContractSchema>,
 }
 
 impl Mongo{
@@ -28,6 +30,7 @@ impl Mongo{
         // }
         Mongo{
             User: db.collection::<UserSchema>("users"),
+            Contract: db.collection::<ContractSchema>("contracts")
         }
     }
 }

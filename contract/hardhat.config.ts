@@ -23,8 +23,9 @@ export default {
     private: {
       url: "http://52.179.136.216:8545",
       chainId: 1337,
-      accounts: ['0x911f12fb0246378dc32cc675b0535b3056d8c166b156d08bc5f29c968e4585b6']
+      accounts: ['0x7d1fe7133ae962a50f860468ea1351f83e417dbdaab635294efdd8e6e3eef031']
     }
   },
 };
-//0xeA4c45d4e0f2517016774f7ce45B03606B753aE8
+//0x096A37b3Ca5d96d3b251825291a10a92164cAcAf
+//0xE0623b806252314b8638C64e5B0E010674071272
