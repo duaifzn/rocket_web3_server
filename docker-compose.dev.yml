@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  web3-server:
+    container_name: web3-server
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    ports:
+      - 8001:8000
+    entrypoint: cargo run
+    networks:
+      - web3-dev
+  web3-mongo:
+    container_name: web3-mongo
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - MONGO_INITDB_DATABASE=web3-dev
+      - MONGO_INITDB_USERNAME=user
+      - MONGO_INITDB_PASSWORD=pass
+    ports:
+      - 27018:27017
+    volumes:
+      - ./docker/mongo/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./docker/mongo/db:/data/db
+    networks:
+      - web3-dev
+networks:
+  web3-dev:
+    name: web3-dev
+    driver: bridge
+    

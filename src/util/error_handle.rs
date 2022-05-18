@@ -19,7 +19,7 @@ pub fn error_handle_of_reqwest(error: reqwest::Error) ->Json<ApiResponse<String>
         success: false,
         code: 500,
         json: None,
-        message: Some(error.to_string()),
+        message: Some(format!("{:?}", error)),
     })
 }
 
@@ -29,6 +29,6 @@ pub fn error_handle_of_web3(error: web3::Error) ->Json<ApiResponse<String>>{
         success: false,
         code: 500,
         json: None,
-        message: Some(error.to_string()),
+        message: Some(format!("{:?}", error)),
     })
 }
