@@ -32,7 +32,6 @@ impl<'r, T: Serialize> Responder<'r, 'static> for ApiResponse<T>{
 #[serde(crate = "rocket::serde")]
 pub struct CreateOneUserDto{
     pub id: String,
-
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

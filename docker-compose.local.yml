@@ -1,0 +1,17 @@
+version: '3.9'
+services:
+  web3-mongo:
+    container_name: web3-mongo
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - MONGO_INITDB_DATABASE=dev
+      - MONGO_INITDB_USERNAME=user
+      - MONGO_INITDB_PASSWORD=pass
+    volumes:
+      - ./docker/mongo/init.sh:/docker-entrypoint-initdb.d/init.sh
+    ports:
+      - 27023:27017
+    

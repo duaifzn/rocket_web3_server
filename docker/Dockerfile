@@ -1,6 +1,6 @@
 FROM rust:latest
 
 WORKDIR /usr/src/myapp
-COPY . .
+COPY . ./
 
 RUN cargo build
