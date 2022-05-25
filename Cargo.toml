@@ -29,3 +29,7 @@ async-trait = "0.1.53"
 version = "2.1.0"
 default-features = false
 features = ["async-std-runtime"]
+
+[[example]]
+name = "seed"
+path = "./examples/seed/main.rs"

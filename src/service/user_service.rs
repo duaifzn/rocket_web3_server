@@ -24,13 +24,13 @@ pub async fn insert_one_user(db: &State<Mongo>, user: Json<UserDto>) ->Result<In
     Ok(data)
 }
 
-pub async fn verify_one_user(db: &State<Mongo>, user: Json<UserDto>) ->Result<bool>{
+pub async fn verify_one_user(db: &State<Mongo>, user: Json<UserDto>) ->Result<(bool, Option<UserSchema>)>{
     let old_user = db.User.find_one(doc!{
         "email": user.email.to_owned()
     }, None).await?;
     match old_user{
-        Some(result) => Ok(verify(user.password.to_owned(), &result.password).unwrap()),
-        None => Ok(false)
+        Some(result) => Ok((verify(user.password.to_owned(), &result.password).unwrap(), Some(result))),
+        None => Ok((false, None))
     }
 }
 

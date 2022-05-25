@@ -2,13 +2,13 @@ use crate::contract_interface::proof_of_existence_interface;
 use crate::database::Mongo;
 use crate::dto::request_dto::{
     AddIssuerDto, DelIssuerDto, DeployContractDto, GetHashDto, HashDto, IsIssuerDto,
-    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto,
+    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto, IsRevokeDto,
 };
 use crate::dto::response_dto::{
     ApiResponse, BoolDto, ContractAddressDto, HashValueDto, SendHashDto, Sha256HashDto,
     TxAddressDto,
 };
-use crate::middleware::auth_guard::Token;
+use crate::middleware::{admin_auth_guard, user_auth_guard};
 use crate::service::contract_service::insert_one_contract;
 use crate::util::error_handle::{
     error_handle_of_reqwest, error_handle_of_string, error_handle_of_web3,
@@ -82,30 +82,31 @@ pub async fn send_hash(
 }
 
 #[openapi]
-#[get("/contract/isIssuer", data = "<body>")]
+#[get("/contract/isIssuer", format = "json",  data = "<body>")]
 pub async fn is_issuer(
+    _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<IsIssuerDto>,
 ) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let contract_address = EthNode::hex_str_to_bytes20(&body.address.replace("0x", ""))
+    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
-    let target_address = EthNode::hex_str_to_bytes20(&body.target_address.replace("0x", ""))
+    let issuer_address = EthNode::hex_str_to_bytes20(&body.issuer_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
 
     let data = contract
         .abi()
         .function("isIssuer")
         .unwrap()
-        .encode_input(&[web3::ethabi::Token::Address(H160::from(target_address))])
+        .encode_input(&[web3::ethabi::Token::Address(H160::from(issuer_address))])
         .unwrap();
 
     let call_req = web3::types::CallRequest {
@@ -126,7 +127,6 @@ pub async fn is_issuer(
         .call(call_req, None)
         .await
         .map_err(error_handle_of_web3)?;
-    println!("{:?}", call_res);
     let result_temp = contract
         .abi()
         .function("isIssuer")
@@ -145,12 +145,13 @@ pub async fn is_issuer(
 #[openapi]
 #[post("/contract/notarizeHash", data = "<body>")]
 pub async fn notarize_hash(
+    _token: user_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<NotarizeHashDto>,
 ) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
@@ -176,7 +177,7 @@ pub async fn notarize_hash(
         .await
         .map_err(error_handle_of_web3)?;
     let raw_tx = vault
-        .create_one_raw_transaction(&body.address, count.low_u64(), data)
+        .create_one_raw_transaction(&body.contract_address, count.low_u64(), data)
         .await;
     let signed_tx = vault
         .sign_one_transaction(&body.account_name, raw_tx)
@@ -202,17 +203,18 @@ pub async fn notarize_hash(
 #[openapi]
 #[get("/contract/getHash", data = "<body>")]
 pub async fn get_hash(
+    _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<GetHashDto>,
 ) -> Result<Json<ApiResponse<HashValueDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let contract_address = EthNode::hex_str_to_bytes20(&body.address.replace("0x", ""))
+    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
@@ -266,12 +268,13 @@ pub async fn get_hash(
 #[openapi]
 #[patch("/contract/revokeHash", data = "<body>")]
 pub async fn revoke_hash(
+    _token: user_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<RevokeHashDto>,
 ) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
@@ -291,7 +294,7 @@ pub async fn revoke_hash(
         .await
         .map_err(error_handle_of_web3)?;
     let raw_tx = vault
-        .create_one_raw_transaction(&body.address, count.low_u64(), data)
+        .create_one_raw_transaction(&body.contract_address, count.low_u64(), data)
         .await;
     let signed_tx = vault
         .sign_one_transaction(&body.account_name, raw_tx)
@@ -308,7 +311,72 @@ pub async fn revoke_hash(
         success: true,
         code: 200,
         json: Some(TxAddressDto {
-            tx_address: tx_address.to_string(),
+            tx_address: format!("{:?}", tx_address),
+        }),
+        message: None,
+    }))
+}
+
+#[openapi]
+#[get("/contract/isRevoked", data = "<body>")]
+pub async fn is_revoked(
+    _token: user_auth_guard::Token<'_>,
+    vault: &State<Vault>,
+    eth_node: &State<EthNode>,
+    body: Json<IsRevokeDto>,
+) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let res = vault
+        .get_one_account(&body.account_name)
+        .await
+        .map_err(error_handle_of_reqwest)?;
+
+    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let key_sha256 = EthNode::sha256_hash(&body.key);
+    let key = EthNode::hex_str_to_bytes32(&key_sha256).map_err(error_handle_of_web3)?;
+
+    let data = contract
+        .abi()
+        .function("isRevoked")
+        .unwrap()
+        .encode_input(&[web3::ethabi::Token::FixedBytes(key.to_vec())])
+        .unwrap();
+
+    let call_req = web3::types::CallRequest {
+        from: Some(web3::types::Address::from(account_address)),
+        to: Some(web3::types::Address::from(contract_address)),
+        gas: None,
+        gas_price: None,
+        value: None,
+        data: Some(Bytes(data)),
+        transaction_type: None,
+        access_list: None,
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
+    };
+    let call_res = eth_node
+        .web3
+        .eth()
+        .call(call_req, None)
+        .await
+        .map_err(error_handle_of_web3)?;
+
+    let result_temp = contract
+        .abi()
+        .function("isRevoked")
+        .unwrap()
+        .decode_output(&call_res.0)
+        .unwrap();
+    let result =
+        <bool as web3::contract::tokens::Detokenize>::from_tokens(result_temp).unwrap();
+    Ok(Json(ApiResponse {
+        success: true,
+        code: 200,
+        json: Some(BoolDto {
+            result: result,
         }),
         message: None,
     }))
@@ -317,31 +385,32 @@ pub async fn revoke_hash(
 #[openapi]
 #[post("/contract/addIssuer", data = "<body>")]
 pub async fn add_issuer(
+    _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<AddIssuerDto>,
 ) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let target_address = EthNode::hex_str_to_bytes20(&body.target_address.replace("0x", ""))
+    let issuer_address = EthNode::hex_str_to_bytes20(&body.issuer_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let data = contract
         .abi()
         .function("addIssuer")
         .unwrap()
-        .encode_input(&[web3::ethabi::Token::Address(H160::from(target_address))])
+        .encode_input(&[web3::ethabi::Token::Address(H160::from(issuer_address))])
         .unwrap();
     let count = eth_node
         .get_transaction_count(&res.data.address.replace("0x", ""))
         .await
         .map_err(error_handle_of_web3)?;
     let raw_tx = vault
-        .create_one_raw_transaction(&body.address, count.low_u64(), data)
+        .create_one_raw_transaction(&body.contract_address, count.low_u64(), data)
         .await;
     let signed_tx = vault
         .sign_one_transaction(&body.account_name, raw_tx)
@@ -358,7 +427,7 @@ pub async fn add_issuer(
         success: true,
         code: 200,
         json: Some(TxAddressDto {
-            tx_address: tx_address.to_string(),
+            tx_address: format!("{:?}", tx_address),
         }),
         message: None,
     }))
@@ -367,30 +436,31 @@ pub async fn add_issuer(
 #[openapi]
 #[delete("/contract/delIssuer", data = "<body>")]
 pub async fn del_issuer(
+    _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<DelIssuerDto>,
 ) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
-    let target_address = EthNode::hex_str_to_bytes32(&body.target_address.replace("0x", ""))
+    let issuer_address = EthNode::hex_str_to_bytes20(&body.issuer_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let data = contract
         .abi()
         .function("delIssuer")
         .unwrap()
-        .encode_input(&[web3::ethabi::Token::FixedBytes(target_address.to_vec())])
+        .encode_input(&[web3::ethabi::Token::Address(H160::from(issuer_address))])
         .unwrap();
     let count = eth_node
         .get_transaction_count(&res.data.address.replace("0x", ""))
         .await
         .map_err(error_handle_of_web3)?;
     let raw_tx = vault
-        .create_one_raw_transaction(&body.address, count.low_u64(), data)
+        .create_one_raw_transaction(&body.contract_address, count.low_u64(), data)
         .await;
     let signed_tx = vault
         .sign_one_transaction(&body.account_name, raw_tx)
@@ -407,7 +477,7 @@ pub async fn del_issuer(
         success: true,
         code: 200,
         json: Some(TxAddressDto {
-            tx_address: tx_address.to_string(),
+            tx_address: format!("{:?}", tx_address),
         }),
         message: None,
     }))
@@ -416,30 +486,31 @@ pub async fn del_issuer(
 #[openapi]
 #[patch("/contract/transferOwnership", data = "<body>")]
 pub async fn transfer_ownership(
+    _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<TransferOwnershipDto>,
 ) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
-    let target_address = EthNode::hex_str_to_bytes32(&body.target_address.replace("0x", ""))
+    let issuer_address = EthNode::hex_str_to_bytes20(&body.issuer_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let data = contract
         .abi()
-        .function("delIssuer")
+        .function("transferOwnership")
         .unwrap()
-        .encode_input(&[web3::ethabi::Token::FixedBytes(target_address.to_vec())])
+        .encode_input(&[web3::ethabi::Token::Address(H160::from(issuer_address))])
         .unwrap();
     let count = eth_node
         .get_transaction_count(&res.data.address.replace("0x", ""))
         .await
         .map_err(error_handle_of_web3)?;
     let raw_tx = vault
-        .create_one_raw_transaction(&body.address, count.low_u64(), data)
+        .create_one_raw_transaction(&body.contract_address, count.low_u64(), data)
         .await;
     let signed_tx = vault
         .sign_one_transaction(&body.account_name, raw_tx)
@@ -456,7 +527,7 @@ pub async fn transfer_ownership(
         success: true,
         code: 200,
         json: Some(TxAddressDto {
-            tx_address: tx_address.to_string(),
+            tx_address: format!("{:?}", tx_address),
         }),
         message: None,
     }))
@@ -465,6 +536,7 @@ pub async fn transfer_ownership(
 #[openapi]
 #[post("/contract/deployContract", data = "<body>")]
 pub async fn deploy_contract(
+    _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,

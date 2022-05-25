@@ -1,10 +1,8 @@
-use crate::dto::raw_transaction::RawTransaction;
-use crate::dto::response_dto::{VaultAccountDto, VaultSignDto};
+use crate::dto::response_dto::{VaultAccountDto};
 use reqwest;
-use reqwest::{Response, Result};
+use reqwest::{Result};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use web3::types::U256;
 
 pub struct Vault {
     pub host: String,
@@ -39,23 +37,6 @@ impl Vault {
         }
         Ok(())
     }
-    pub async fn create_one_raw_transaction(
-        &self,
-        address_to: &str,
-        nonce: u64,
-        data: Vec<u8>,
-    ) -> RawTransaction {
-        RawTransaction {
-            address_to: address_to.to_string(),
-            data: hex::encode(data),
-            encoding: "hex".to_string(),
-            amount: "0".to_string(),
-            nonce: nonce.to_string(),
-            gas_limit: "1071003".to_string(),
-            gas_price: "7".to_string(),
-            chainID: "1337".to_string(),
-        }
-    }
     pub async fn create_one_account(&self, account_name: &str) -> Result<VaultAccountDto> {
         let hash_account = Self::sha256_hash(account_name);
         let client = reqwest::Client::new();
@@ -80,26 +61,6 @@ impl Vault {
                 self.host, hash_account
             ))
             .header("Authorization", format!("Bearer {}", self.token))
-            .send()
-            .await?
-            .json()
-            .await?;
-        Ok(res)
-    }
-    pub async fn sign_one_transaction(
-        &self,
-        account_name: &str,
-        raw_transaction: RawTransaction,
-    ) -> Result<VaultSignDto> {
-        let hash_account = Self::sha256_hash(account_name);
-        let client = reqwest::Client::new();
-        let res: VaultSignDto = client
-            .post(format!(
-                "http://{}/v1/ethplugin/accounts/{}/sign-tx",
-                self.host, hash_account
-            ))
-            .header("Authorization", format!("Bearer {}", self.token))
-            .json(&raw_transaction)
             .send()
             .await?
             .json()

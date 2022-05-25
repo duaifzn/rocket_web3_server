@@ -10,7 +10,5 @@ pub fn dev() ->Config<'static>{
         mongodb_database_name: "web3-dev",
         vault_host: "52.179.136.216:30305",
         vault_token: "s.Z8uTnozQWThsJymRqK7Dgbre",
-        eth_node_host: "52.179.136.216:8545",
-        miner_private_key: "0x7d1fe7133ae962a50f860468ea1351f83e417dbdaab635294efdd8e6e3eef031",
     }
 }

@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::io::Cursor;
 use rocket::serde::{Serialize, Deserialize, json};
 use rocket::response;
@@ -117,11 +116,4 @@ pub struct HashValueDto{
 pub struct ContractAddressDto{
     pub tx_address: Option<String>,
     pub contract_address: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(crate = "rocket::serde")]
-pub struct AddressBalanceDto{
-    pub account_address: Option<String>,
-    pub balance: Option<String>,
 }

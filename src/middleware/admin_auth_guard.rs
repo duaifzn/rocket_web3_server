@@ -1,5 +1,5 @@
 use rocket::{request::{self, Request, FromRequest, Outcome}, http::Status};
-use crate::util::auth::auth_token_is_valid;
+use crate::util::auth::admin_auth_token_is_valid;
 use rocket_okapi::okapi::openapi3::{
     Object, SecurityRequirement, SecurityScheme, SecuritySchemeData,
 };
@@ -22,7 +22,7 @@ impl<'r> FromRequest<'r> for Token<'r> {
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         match req.headers().get_one("Authorization"){
             None => Outcome::Failure((Status::BadRequest, TokenError::Missing)),
-            Some(token) if auth_token_is_valid(token) => Outcome::Success(Token(token)),
+            Some(token) if admin_auth_token_is_valid(token) => Outcome::Success(Token(token)),
             Some(_) => Outcome::Failure((Status::BadRequest, TokenError::Invalid)),
         }
     }

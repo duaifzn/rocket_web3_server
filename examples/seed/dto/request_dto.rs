@@ -97,9 +97,3 @@ pub struct DeployContractDto{
 pub struct MoneyTransferDto{
     pub to_account_name: String
 }
-
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(crate = "rocket::serde")]
-pub struct GetAccountBalanceDto{
-    pub account_name: String
-}

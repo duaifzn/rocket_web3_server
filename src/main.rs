@@ -26,6 +26,7 @@ async fn rocket() -> _{
             controller::user_controller::index,
             controller::user_controller::signup_one_user,
             controller::user_controller::signin_one_user,
+            controller::user_controller::get_account_balance,
             controller::contract_controller::sha256_hash,
             controller::contract_controller::send_hash,
             controller::contract_controller::is_issuer,
@@ -33,9 +34,11 @@ async fn rocket() -> _{
             controller::contract_controller::notarize_hash,
             controller::contract_controller::get_hash,
             controller::contract_controller::revoke_hash,
+            controller::contract_controller::is_revoked,
             controller::contract_controller::del_issuer,
             controller::contract_controller::transfer_ownership,
             controller::contract_controller::deploy_contract,
+            controller::admin_controller::money_transfer,
         ])
         .mount(
             "/swagger-ui/",

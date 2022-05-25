@@ -14,8 +14,6 @@ pub struct Config<'a>{
     pub mongodb_database_name: &'a str,
     pub vault_host:  &'a str,
     pub vault_token: &'a str,
-    pub eth_node_host: &'a str,
-    pub miner_private_key: &'a str,
 }
 
 impl Config<'static>{

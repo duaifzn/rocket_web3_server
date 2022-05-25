@@ -14,11 +14,17 @@ Content-Type: application/json
     "gas_price": "1",
     "chainID": "1337"
 }
+###
+
+POST  http://127.0.0.1:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B61 HTTP/1.1
+Authorization: Bearer s.9ajvNBkgKrdOOi4g08tSuLTR
+
+
 
 ###
 
-GET http://52.179.136.216:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B62 HTTP/1.1
-Authorization: Bearer s.Z8uTnozQWThsJymRqK7Dgbre
+GET http://127.0.0.1:30305/v1/ethplugin/accounts/1BF3C2AB0543AF66CEB910FE8B07F3C540128713FAA1F289A090BD49329F7B62 HTTP/1.1
+Authorization: Bearer s.9ajvNBkgKrdOOi4g08tSuLTR
 Content-Type: application/json
 
 ###
