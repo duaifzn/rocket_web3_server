@@ -24,6 +24,7 @@ serial_test = "0.6.0"
 eth-keystore = "0.4.1"
 reqwest = { version = "0.11", features = ["json"] }
 async-trait = "0.1.53"
+clokwerk = "0.3.5"
 
 [dependencies.mongodb]
 version = "2.1.0"

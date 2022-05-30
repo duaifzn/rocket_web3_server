@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::io::Cursor;
 use rocket::serde::{Serialize, Deserialize, json};
 use rocket::response;
@@ -124,4 +123,33 @@ pub struct ContractAddressDto{
 pub struct AddressBalanceDto{
     pub account_address: Option<String>,
     pub balance: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct DecodeEventLogDto{
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub previous_owner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_owner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issuer_account: Option<String>,
+}
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct CustomTransactionReceiptDto{
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockhash: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decode_log: Option<DecodeEventLogDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<String>,
 }

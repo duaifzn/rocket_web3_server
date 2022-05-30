@@ -1,5 +1,7 @@
 use crate::database::Mongo;
-use crate::dto::request_dto::{GetAccountBalanceDto, UserDto};
+use crate::dto::request_dto::{
+    GetAccountBalanceDto, UserDto,
+};
 use crate::dto::response_dto::{
     AddressBalanceDto, ApiResponse, CreateOneUserDto, SigninOneUserDto,
 };
@@ -134,10 +136,10 @@ pub async fn get_account_balance(
         .await
         .map_err(error_handle_of_web3)?;
 
-    Ok(Json(ApiResponse{
+    Ok(Json(ApiResponse {
         success: true,
         code: 200,
-        json: Some(AddressBalanceDto{
+        json: Some(AddressBalanceDto {
             account_address: Some(res.data.address),
             balance: Some(format!("{:?}", balance)),
         }),

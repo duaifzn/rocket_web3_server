@@ -103,3 +103,18 @@ pub struct MoneyTransferDto{
 pub struct GetAccountBalanceDto{
     pub account_name: String
 }
+
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct GetBlockhashTxsDto{
+    pub contract_address: String,
+    pub blockhash: String
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct GetOneTransactionDto{
+    pub contract_address: String,
+    pub tx_address: String
+}

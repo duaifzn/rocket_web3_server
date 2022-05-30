@@ -1,12 +1,14 @@
 use crate::contract_interface::proof_of_existence_interface;
+use crate::contract_interface::proof_of_existence_interface::ProofOfExistence;
 use crate::database::Mongo;
 use crate::dto::request_dto::{
-    AddIssuerDto, DelIssuerDto, DeployContractDto, GetHashDto, HashDto, IsIssuerDto,
-    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto, IsRevokeDto,
+    AddIssuerDto, DelIssuerDto, DeployContractDto, GetBlockhashTxsDto, GetHashDto,
+    GetOneTransactionDto, HashDto, IsIssuerDto, IsRevokeDto, NotarizeHashDto, RawDto,
+    RevokeHashDto, TransferOwnershipDto,
 };
 use crate::dto::response_dto::{
-    ApiResponse, BoolDto, ContractAddressDto, HashValueDto, SendHashDto, Sha256HashDto,
-    TxAddressDto,
+    ApiResponse, BoolDto, ContractAddressDto, CustomTransactionReceiptDto, HashValueDto,
+    SendHashDto, Sha256HashDto, TxAddressDto,
 };
 use crate::middleware::{admin_auth_guard, user_auth_guard};
 use crate::service::contract_service::insert_one_contract;
@@ -21,8 +23,8 @@ use rocket::State;
 use rocket_okapi::openapi;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
-use web3::ethabi::FixedBytes;
-use web3::types::{Bytes, H160, U256};
+use web3::ethabi::{FixedBytes, RawLog};
+use web3::types::{Bytes, H160, H256};
 
 #[openapi]
 #[get("/hash", data = "<body>")]
@@ -82,7 +84,7 @@ pub async fn send_hash(
 }
 
 #[openapi]
-#[get("/contract/isIssuer", format = "json",  data = "<body>")]
+#[get("/contract/isIssuer", format = "json", data = "<body>")]
 pub async fn is_issuer(
     _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
@@ -370,14 +372,11 @@ pub async fn is_revoked(
         .unwrap()
         .decode_output(&call_res.0)
         .unwrap();
-    let result =
-        <bool as web3::contract::tokens::Detokenize>::from_tokens(result_temp).unwrap();
+    let result = <bool as web3::contract::tokens::Detokenize>::from_tokens(result_temp).unwrap();
     Ok(Json(ApiResponse {
         success: true,
         code: 200,
-        json: Some(BoolDto {
-            result: result,
-        }),
+        json: Some(BoolDto { result: result }),
         message: None,
     }))
 }
@@ -581,6 +580,177 @@ pub async fn deploy_contract(
             tx_address: Some(format!("{:?}", tx_address)),
             contract_address: Some(format!("{:?}", contract_address)),
         }),
+        message: None,
+    }))
+}
+
+#[openapi]
+#[get("/contract/log/transaction", format = "json", data = "<body>")]
+pub async fn get_one_transaction_log(
+    _token: user_auth_guard::Token<'_>,
+    eth_node: &State<EthNode>,
+    body: Json<GetOneTransactionDto>,
+) -> Result<Json<ApiResponse<CustomTransactionReceiptDto>>, Json<ApiResponse<String>>> {
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let tx_address = EthNode::hex_str_to_bytes32(&body.tx_address.clone().replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let receipt_temp = eth_node
+        .get_one_transaction_receipt(H256::from(tx_address))
+        .await
+        .map_err(error_handle_of_web3)?;
+    let receipt = match receipt_temp {
+        Some(result) => result,
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("null receipt!".to_string()),
+            }))
+        }
+    };
+    let timestamp = match receipt.block_hash {
+        Some(hash) => eth_node
+            .get_blockhash_timestamp(hash)
+            .await
+            .map_err(error_handle_of_web3)?
+            .unwrap(),
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("null timestamp!".to_string()),
+            }))
+        }
+    };
+    let log_first = match receipt.logs.first() {
+        Some(log) => log.to_owned(),
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("null log!".to_string()),
+            }))
+        }
+    };
+    let (event_name, decoded_log) = EthNode::decode_log(
+        contract.abi().events(),
+        RawLog {
+            topics: log_first.topics.clone(),
+            data: log_first.data.0.clone(),
+        },
+    );
+
+    match event_name {
+        Some(_) => {}
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("event not match!".to_string()),
+            }))
+        }
+    };
+    let decoded = ProofOfExistence::decode_event_log(event_name.unwrap().as_str(), decoded_log);
+
+    Ok(Json(ApiResponse {
+        success: true,
+        code: 200,
+        json: Some(CustomTransactionReceiptDto {
+            blockhash: Some(format!("{:?}", receipt.block_hash.unwrap())),
+            tx_address: Some(format!("{:?}", receipt.transaction_hash)),
+            decode_log: Some(decoded),
+            timestamp: Some(format!("{:?}", timestamp)),
+        }),
+        message: None,
+    }))
+}
+
+#[openapi]
+#[get("/contract/log/blockhash", format = "json", data = "<body>")]
+pub async fn get_blockhash_transactions_log(
+    _token: user_auth_guard::Token<'_>,
+    eth_node: &State<EthNode>,
+    body: Json<GetBlockhashTxsDto>,
+) -> Result<Json<ApiResponse<Vec<CustomTransactionReceiptDto>>>, Json<ApiResponse<String>>> {
+    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let blockhash = EthNode::hex_str_to_bytes32(&body.blockhash.clone().replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let (transactions, timestamp_temp) = eth_node
+        .get_all_transactions_of_blockhash(H256::from(blockhash))
+        .await
+        .map_err(error_handle_of_web3)?;
+    let timestamp = match timestamp_temp{
+        Some(tt) => tt,
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("null timestamp!".to_string()),
+            }))
+        }
+    };
+    let txs = match transactions {
+        Some(txs) => txs,
+        None => {
+            return Ok(Json(ApiResponse {
+                success: true,
+                code: 200,
+                json: None,
+                message: Some("None transaction in block!".to_string()),
+            }))
+        }
+    };
+    let receipts = eth_node.get_many_transaction_receipts(txs).await;
+    let result: Vec<CustomTransactionReceiptDto> = receipts
+        .into_iter()
+        .map(|receipt_temp| {
+            if receipt_temp == None{
+                return CustomTransactionReceiptDto {
+                    blockhash: None,
+                    tx_address: None,
+                    decode_log: None,
+                    timestamp: None,
+                }
+            }
+            else {
+                let receipt  = receipt_temp.unwrap();
+                let log_first = match receipt.logs.first() {
+                    Some(log) => log.to_owned(),
+                    None => return CustomTransactionReceiptDto {
+                        blockhash: Some(format!("{:?}", receipt.block_hash.unwrap())),
+                        tx_address: Some(format!("{:?}", receipt.transaction_hash)),
+                        decode_log: None,
+                        timestamp: Some(format!("{:?}", timestamp)),
+                    },
+                };
+                let (event_name, decoded_log) = EthNode::decode_log(
+                    contract.abi().events(),
+                    RawLog {
+                        topics: log_first.topics.clone(),
+                        data: log_first.data.0.clone(),
+                    },
+                );
+                let decoded =
+                    ProofOfExistence::decode_event_log(event_name.unwrap().as_str(), decoded_log);
+                return CustomTransactionReceiptDto {
+                    blockhash: Some(format!("{:?}", receipt.block_hash.unwrap())),
+                    tx_address: Some(format!("{:?}", receipt.transaction_hash)),
+                    decode_log: Some(decoded),
+                    timestamp: Some(format!("{:?}", timestamp)),
+                };
+            }
+            
+        })
+        .collect();
+    Ok(Json(ApiResponse {
+        success: true,
+        code: 200,
+        json: Some(result),
         message: None,
     }))
 }

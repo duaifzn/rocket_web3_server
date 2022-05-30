@@ -21,7 +21,7 @@ Content-Type: application/json
 
 ###
 POST http://127.0.0.1:8000/api/admin/money/transfer HTTP/1.1
-Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjAifQ.eyJleHAiOjE2NTM1NTI0Mzh9.iAFhYaOmKgC4ElIasqeW-SWdiKqe-iYTLkvJdGvYGk0A76plhMXUgu3L-uPORYHmyptgo6r4HfdCnqK9qFdCmw
+# Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjAifQ.eyJleHAiOjE2NTM1NTI0Mzh9.iAFhYaOmKgC4ElIasqeW-SWdiKqe-iYTLkvJdGvYGk0A76plhMXUgu3L-uPORYHmyptgo6r4HfdCnqK9qFdCmw
 Content-Type: application/json
 
 {
@@ -63,21 +63,22 @@ GET http://127.0.0.1:8000/api/contract/isIssuer HTTP/1.1
 Content-Type: application/json
 
 {
-    "contract_address": "0xcbd60da5f6dc1641c666a12e231d585379cc0e03",
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
     "account_name": "duaifzn123@gmail.com",
-    "target_address": "0x87bbeD49992ca50Ac38Fc3fD893Bd1102F3052a1"
+    "issuer_address": "0x87bbeD49992ca50Ac38Fc3fD893Bd1102F3052a1"
 }
 //duaifzn123@gmail.com 0xFB4c5d29B78083905617092A105b41Cd327365Ef
 //duaifzn1@gmail.com 0x87bbeD49992ca50Ac38Fc3fD893Bd1102F3052a1
-//0xeba65a1f988c834e30570c99a7faf60eb63507598e2213cc523643244692fc50
+    //"tx_address": "0x849cbe34fcfcfeddf070768c235a3108c0d856ef502418f9455e112b2230ef73",
+    //"contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8"
 ###
 POST http://127.0.0.1:8000/api/contract/addIssuer HTTP/1.1
 Content-Type: application/json
 
 {
-    "contract_address": "0xcbd60da5f6dc1641c666a12e231d585379cc0e03",
-    "account_name": "duaifzn1@gmail.com",
-    "target_address": "0xFB4c5d29B78083905617092A105b41Cd327365Ef"
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
+    "account_name": "duaifzn123@gmail.com",
+    "issuer_address": "0x87bbeD49992ca50Ac38Fc3fD893Bd1102F3052a1"
 }
 
 ###
@@ -85,13 +86,13 @@ POST http://127.0.0.1:8000/api/contract/notarizeHash HTTP/1.1
 Content-Type: application/json
 
 {
-    "contract_address": "0xcbd60da5f6dc1641c666a12e231d585379cc0e03",
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
     "account_name": "duaifzn123@gmail.com",
-    "key": "test32111",
+    "key": "test3211111",
     "value": "test456"
 }
 
-###
+###0x4af7110aa9d5f18ee5f1cd65d4fedeb4cad867af2e9c65c1a7fb8f358f41eff0
 PATCH http://127.0.0.1:8000/api/contract/revokeHash HTTP/1.1
 Content-Type: application/json
 
@@ -116,9 +117,9 @@ GET http://127.0.0.1:8000/api/contract/getHash HTTP/1.1
 Content-Type: application/json
 
 {
-    "contract_address": "0xcbd60da5f6dc1641c666a12e231d585379cc0e03",
-    "account_name": "duaifzn1@gmail.com",
-    "key": "test32111"
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
+    "account_name": "duaifzn123@gmail.com",
+    "key": "test3211111"
 }
 
 ###
@@ -148,3 +149,21 @@ Content-Type: application/json
     "account_name": "duaifzn123@gmail.com"
 }
 ###0xc7ed5464e24ec0685e8b26605ef26e85f60c1dbf7e61da3fcd1cba168a6216f5
+
+GET http://127.0.0.1:8000/api/contract/log/blockhash HTTP/1.1
+Content-Type: application/json
+
+{
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
+    "blockhash": "0xb531bc2a581d9dc2c476c55d3f9251a3e104b4db0c9d66da04564fc73000d711"
+}
+
+###0xb531bc2a581d9dc2c476c55d3f9251a3e104b4db0c9d66da04564fc73000d711
+
+GET http://127.0.0.1:8000/api/contract/log/transaction HTTP/1.1
+Content-Type: application/json
+
+{   
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
+    "tx_address": "0x4af7110aa9d5f18ee5f1cd65d4fedeb4cad867af2e9c65c1a7fb8f358f41eff0"
+}

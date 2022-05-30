@@ -1,16 +1,18 @@
 use crate::config::Config;
 use eth_keystore::decrypt_key;
 use hex::FromHex;
+use rocket::futures::future::join_all;
 use rocket::tokio::time::{sleep, Duration};
 use secp256k1::SecretKey;
 use sha2::{Digest, Sha256};
+use web3::ethabi::{Events, RawLog, Log};
 use std::path::Path;
 use std::str::FromStr;
 use web3::contract::{Contract, Options};
 use web3::transports::Http;
 use web3::types::{
     Address, BlockId, BlockNumber, Bytes, Transaction, TransactionId, TransactionParameters,
-    TransactionRequest, H160, H256, U256, U64,
+    TransactionReceipt, TransactionRequest, H160, H256, U256, U64,
 };
 use web3::Error::{Decoder, InvalidResponse};
 use web3::{self, Result, Web3};
@@ -100,6 +102,7 @@ impl EthNode {
         let tx_object = TransactionParameters {
             to: Some(address),
             value: U256::exp10(21),
+            gas_price: Some(U256::from(25000)),
             ..Default::default()
         };
         let signed = self
@@ -130,6 +133,68 @@ impl EthNode {
                 None => {}
             }
         }
+    }
+    pub async fn get_all_transactions_of_blockhash(
+        &self,
+        blockhash: H256,
+    ) -> Result<(Option<Vec<H256>>, Option<U256>)> {
+        let block = self
+            .web3
+            .eth()
+            .block_with_txs(BlockId::Hash(blockhash))
+            .await?;
+        match block {
+            Some(block_msg) => {
+                let txs = block_msg.transactions.clone();
+                let txs_hash: Vec<H256> = txs.to_vec().into_iter().map(|tx| tx.hash).collect();
+                Ok((Some(txs_hash), Some(block_msg.timestamp)))
+            }
+            None => Ok((None, None)),
+        }
+    }
+    pub async fn get_many_transaction_receipts(
+        &self,
+        txs: Vec<H256>,
+    ) -> Vec<Option<TransactionReceipt>> {
+        let process = txs.to_vec().into_iter().map(|tx| async move {
+            let result = self.web3.eth().transaction_receipt(tx).await;
+            match result {
+                Ok(receipt) => receipt,
+                Err(err) => {
+                    println!("{:?}", err);
+                    None
+                }
+            }
+        });
+        join_all(process).await
+    }
+    pub async fn get_one_transaction_receipt(
+        &self,
+        tx_address: H256,
+    ) -> Result<Option<TransactionReceipt>> {
+        let receipt = self.web3.eth().transaction_receipt(tx_address).await?;
+        Ok(receipt)
+    }
+    pub async fn get_blockhash_timestamp(&self, blockhash: H256) -> Result<Option<U256>> {
+        let block = self
+            .web3
+            .eth()
+            .block_with_txs(BlockId::Hash(blockhash))
+            .await?;
+        match block {
+            Some(block_msg) => Ok(Some(block_msg.timestamp)),
+            None => Ok(None),
+        }
+    }
+    pub fn decode_log(events: Events, raw_log: RawLog) ->(Option<String>, Option<Log>){
+        for event in events {
+            let result = event.clone().parse_log(raw_log.clone());
+            match result{
+                Ok(log) => return (Some(event.name.clone()), Some(log)),
+                Err(_) => {},
+            }
+        };
+        return (None, None)
     }
     pub fn connect_contract_of_proof_of_existence(&self, address: &str) -> Contract<Http> {
         let contract_address = Address::from_str(address).unwrap();

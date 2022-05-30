@@ -1,15 +1,13 @@
 use std::str::FromStr;
-use std::string::FromUtf8Error;
 use hex::FromHex;
 use secp256k1::SecretKey;
 use web3::contract::{Contract, Options, Result};
-use web3::ethabi::{Token, FixedBytes};
+use web3::ethabi::{Token, FixedBytes, Log};
 use web3::transports::Http;
 use web3::types::{H160, H256};
 use web3::signing::SecretKeyRef;
 use web3::Error::Decoder;
-
-use crate::dto::raw_transaction::RawTransaction;
+use crate::dto::response_dto::DecodeEventLogDto;
 pub struct ProofOfExistence{
     pub contract: Contract<Http>,
 }
@@ -110,5 +108,102 @@ impl ProofOfExistence{
             Options::default(),
             SecretKeyRef::new(&secret_key)).await;
         result
+    }
+    pub fn decode_event_log(event_name: &str, log: Option<Log>) ->DecodeEventLogDto{
+        match log{
+            Some(_) => {},
+            None => return DecodeEventLogDto{
+                event_name: None,
+                previous_owner: None,
+                new_owner: None,
+                key: None,
+                value: None,
+                issuer_account: None,
+            }
+        }
+        match event_name {
+            "ProofCreated" => {
+                let log = log.unwrap();
+                let key = hex::encode(log.params[0].value.clone().into_fixed_bytes().unwrap());
+                let value = hex::encode(log.params[1].value.clone().into_fixed_bytes().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("ProofCreated".to_string()),
+                    previous_owner: None,
+                    new_owner: None,
+                    key: Some(key),
+                    value: Some(value),
+                    issuer_account: None,
+                }
+            },
+            "OwnershipTransferred" => {
+                let log = log.unwrap();
+                let previous_owner = hex::encode(log.params[0].value.clone().into_address().unwrap());
+                let new_owner = hex::encode(log.params[1].value.clone().into_address().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("OwnershipTransferred".to_string()),
+                    previous_owner: Some(previous_owner),
+                    new_owner: Some(new_owner),
+                    key: None,
+                    value: None,
+                    issuer_account: None,
+                }
+            },
+            "IssuerAdded" => {
+                let log = log.unwrap();
+                let account = hex::encode(log.params[0].value.clone().into_address().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("IssuerAdded".to_string()),
+                    previous_owner: None,
+                    new_owner: None,
+                    key: None,
+                    value: None,
+                    issuer_account: Some(account),
+                }
+            },
+            "IssuerRemoved" => {
+                let log = log.unwrap();
+                let account = hex::encode(log.params[0].value.clone().into_address().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("IssuerRemoved".to_string()),
+                    previous_owner: None,
+                    new_owner: None,
+                    key: None,
+                    value: None,
+                    issuer_account: Some(account),
+                }
+            },
+            "IssuerChecked" => {
+                let log = log.unwrap();
+                let account = hex::encode(log.params[0].value.clone().into_address().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("IssuerChecked".to_string()),
+                    previous_owner: None,
+                    new_owner: None,
+                    key: None,
+                    value: None,
+                    issuer_account: Some(account),
+                }
+            },
+            "ProofRevoked" => {
+                let log = log.unwrap();
+                let key = hex::encode(log.params[0].value.clone().into_fixed_bytes().unwrap());
+                return DecodeEventLogDto{
+                    event_name: Some("ProofRevoked".to_string()),
+                    previous_owner: None,
+                    new_owner: None,
+                    key: Some(key),
+                    value: None,
+                    issuer_account: None,
+                }
+            },
+            _ => return DecodeEventLogDto{
+                event_name: None,
+                previous_owner: None,
+                new_owner: None,
+                key: None,
+                value: None,
+                issuer_account: None,
+            }
+        };
     }
 }

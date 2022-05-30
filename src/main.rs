@@ -12,6 +12,7 @@ mod util;
 mod config;
 mod middleware;
 mod contract_interface;
+mod schedule;
 #[cfg(test)]
 mod test;
 
@@ -38,6 +39,8 @@ async fn rocket() -> _{
             controller::contract_controller::del_issuer,
             controller::contract_controller::transfer_ownership,
             controller::contract_controller::deploy_contract,
+            controller::contract_controller::get_one_transaction_log,
+            controller::contract_controller::get_blockhash_transactions_log,
             controller::admin_controller::money_transfer,
         ])
         .mount(
