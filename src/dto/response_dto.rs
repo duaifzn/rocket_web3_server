@@ -147,9 +147,26 @@ pub struct CustomTransactionReceiptDto{
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blockhash: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub parenthash: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nonce: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tx_address: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub decode_log: Option<DecodeEventLogDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct CustomContractLogDto{
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockhash: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract_address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decode_log: Option<DecodeEventLogDto>,
 }

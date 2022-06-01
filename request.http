@@ -88,7 +88,7 @@ Content-Type: application/json
 {
     "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
     "account_name": "duaifzn123@gmail.com",
-    "key": "test3211111",
+    "key": "test321111111113333",
     "value": "test456"
 }
 
@@ -166,4 +166,23 @@ Content-Type: application/json
 {   
     "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
     "tx_address": "0x4af7110aa9d5f18ee5f1cd65d4fedeb4cad867af2e9c65c1a7fb8f358f41eff0"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/contract/log/all HTTP/1.1
+Content-Type: application/json
+
+{   
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/contract/log/event/ProofCreated HTTP/1.1
+Content-Type: application/json
+
+{   
+    "key": "test3211111",
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8"
 }

@@ -118,3 +118,16 @@ pub struct GetOneTransactionDto{
     pub contract_address: String,
     pub tx_address: String
 }
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct GetContractAllLogDto{
+    pub contract_address: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct GetContractLogDto{
+    pub contract_address: String,
+    pub key: String
+}

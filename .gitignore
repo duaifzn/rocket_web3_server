@@ -1,2 +1,3 @@
 /target
 /docker/mongo/db
+/docker/rabbitmq/data

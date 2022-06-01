@@ -5,10 +5,10 @@ use rocket::futures::future::join_all;
 use rocket::tokio::time::{sleep, Duration};
 use secp256k1::SecretKey;
 use sha2::{Digest, Sha256};
-use web3::ethabi::{Events, RawLog, Log};
 use std::path::Path;
 use std::str::FromStr;
 use web3::contract::{Contract, Options};
+use web3::ethabi::{Events, Log, RawLog};
 use web3::transports::Http;
 use web3::types::{
     Address, BlockId, BlockNumber, Bytes, Transaction, TransactionId, TransactionParameters,
@@ -86,9 +86,8 @@ impl EthNode {
             .await?;
         Ok(nonce_latest)
     }
-    pub async fn get_transaction(&self, tx_address: &str) -> Result<Option<Transaction>> {
-        let temp = Self::hex_str_to_bytes32(tx_address).unwrap();
-        let address = TransactionId::Hash(H256::from(temp));
+    pub async fn get_transaction(&self, tx_address: H256) -> Result<Option<Transaction>> {
+        let address = TransactionId::Hash(tx_address);
         let result = self.web3.eth().transaction(address).await?;
         Ok(result)
     }
@@ -186,15 +185,26 @@ impl EthNode {
             None => Ok(None),
         }
     }
-    pub fn decode_log(events: Events, raw_log: RawLog) ->(Option<String>, Option<Log>){
+    pub async fn get_blockhash_parent_hash(&self, blockhash: H256) -> Result<Option<H256>> {
+        let block = self
+            .web3
+            .eth()
+            .block_with_txs(BlockId::Hash(blockhash))
+            .await?;
+        match block {
+            Some(block_msg) => Ok(Some(block_msg.parent_hash)),
+            None => Ok(None),
+        }
+    }
+    pub fn decode_log(events: Events, raw_log: RawLog) -> (Option<String>, Option<Log>) {
         for event in events {
             let result = event.clone().parse_log(raw_log.clone());
-            match result{
+            match result {
                 Ok(log) => return (Some(event.name.clone()), Some(log)),
-                Err(_) => {},
+                Err(_) => {}
             }
-        };
-        return (None, None)
+        }
+        return (None, None);
     }
     pub fn connect_contract_of_proof_of_existence(&self, address: &str) -> Contract<Http> {
         let contract_address = Address::from_str(address).unwrap();
