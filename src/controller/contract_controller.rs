@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use crate::contract_interface::proof_of_existence_interface;
 use crate::contract_interface::proof_of_existence_interface::ProofOfExistence;
 use crate::database::Mongo;
@@ -24,7 +25,7 @@ use rocket_okapi::openapi;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 use web3::ethabi::{FixedBytes, RawLog};
-use web3::types::{BlockNumber, Bytes, FilterBuilder, H160, H256};
+use web3::types::{BlockNumber, Bytes, FilterBuilder, H160, H256, U64};
 
 #[openapi]
 #[get("/hash", data = "<body>")]
@@ -844,15 +845,34 @@ pub async fn get_all_log_of_proof_of_existence(
 #[openapi]
 #[get("/contract/log/event/ProofCreated", format = "json", data = "<body>")]
 pub async fn get_proof_created_log_of_proof_of_existence(
-    // _token: user_auth_guard::Token<'_>,
+    _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
     body: Json<GetContractLogDto>,
 ) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
+    let from_block;
+    let to_block;
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let key_sha256 = EthNode::sha256_hash(&body.key.clone()).to_lowercase();
+    if body.start_timestamp.is_some() && body.end_timestamp.is_some() {
+        let (start, end) = eth_node
+        .block_number_range_of_address_log(
+            contract.address(),
+            body.start_timestamp.unwrap(),
+            body.end_timestamp.unwrap(),
+        )
+        .await
+        .map_err(error_handle_of_web3)?;
+        from_block = BlockNumber::Number(U64::from_str(&start).unwrap());
+        to_block = BlockNumber::Number(U64::from_str(&end).unwrap());
+    }
+    else{
+        from_block = BlockNumber::Earliest;
+        to_block = BlockNumber::Latest;
+    }
+    
     let filter = FilterBuilder::default()
-        .from_block(BlockNumber::Earliest)
-        .to_block(BlockNumber::Latest)
+        .from_block(from_block)
+        .to_block(to_block)
         .address(vec![contract.address()])
         .topics(
             Some(vec![contract
@@ -890,11 +910,11 @@ pub async fn get_proof_created_log_of_proof_of_existence(
                     tx_address: None,
                     contract_address: None,
                     decode_log: None,
-                }
+                };
             }
             let decoded =
                 ProofOfExistence::decode_event_log(event_name.unwrap().as_str(), decoded_log);
-            match decoded.key == Some(key_sha256.to_owned()){
+            match decoded.key == Some(key_sha256.to_owned()) {
                 true => {
                     return CustomContractLogDto {
                         blockhash: Some(format!("{:?}", log.block_hash.unwrap())),
@@ -903,17 +923,19 @@ pub async fn get_proof_created_log_of_proof_of_existence(
                         decode_log: Some(decoded),
                     }
                 }
-                false => return CustomContractLogDto {
-                    blockhash: None,
-                    tx_address: None,
-                    contract_address: None,
-                    decode_log: None,
+                false => {
+                    return CustomContractLogDto {
+                        blockhash: None,
+                        tx_address: None,
+                        contract_address: None,
+                        decode_log: None,
+                    }
                 }
             }
         })
         .filter(|dto| dto.tx_address.is_some())
         .collect();
-        
+
     Ok(Json(ApiResponse {
         success: true,
         code: 200,

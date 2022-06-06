@@ -1,5 +1,6 @@
 use rocket::serde::{Serialize, Deserialize};
 use schemars::JsonSchema;
+
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct UserDto{
@@ -129,5 +130,7 @@ pub struct GetContractAllLogDto{
 #[serde(crate = "rocket::serde")]
 pub struct GetContractLogDto{
     pub contract_address: String,
-    pub key: String
+    pub key: String,
+    pub start_timestamp: Option<u128>,
+    pub end_timestamp: Option<u128>,
 }

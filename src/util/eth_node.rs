@@ -7,12 +7,12 @@ use secp256k1::SecretKey;
 use sha2::{Digest, Sha256};
 use std::path::Path;
 use std::str::FromStr;
-use web3::contract::{Contract, Options};
+use web3::contract::{Contract};
 use web3::ethabi::{Events, Log, RawLog};
 use web3::transports::Http;
 use web3::types::{
-    Address, BlockId, BlockNumber, Bytes, Transaction, TransactionId, TransactionParameters,
-    TransactionReceipt, TransactionRequest, H160, H256, U256, U64,
+    Address, BlockId, BlockNumber, Bytes, FilterBuilder, Transaction, TransactionId,
+    TransactionParameters, TransactionReceipt, TransactionRequest, H160, H256, U256,
 };
 use web3::Error::{Decoder, InvalidResponse};
 use web3::{self, Result, Web3};
@@ -215,5 +215,43 @@ impl EthNode {
         )
         .unwrap();
         contract
+    }
+    pub async fn block_number_range_of_address_log(
+        &self,
+        address: Address,
+        start: u128,
+        end: u128,
+    ) -> Result<(String, String)> {
+        let mut min: u128 = 0;
+        let mut max: u128 = 0;
+        let filter = FilterBuilder::default()
+            .from_block(BlockNumber::Earliest)
+            .to_block(BlockNumber::Latest)
+            .address(vec![address])
+            .build();
+        let filter = self.web3.eth_filter().create_logs_filter(filter).await?;
+        let logs = filter.logs().await?;
+        for log in logs{
+            let time = self.get_blockhash_timestamp(log.block_hash.unwrap()).await?;
+            match time{
+                Some(t) =>{
+                    let a = format!("{:?}", t).parse::<u128>().unwrap();
+                    let blocknumber = format!("{:?}", log.block_number.unwrap()).parse::<u128>().unwrap();
+                    if a >= start && a <= end{
+                        if min == 0{
+                            min = blocknumber;
+                        }
+                        if blocknumber < min{
+                            min = blocknumber;
+                        }
+                        if blocknumber > max{
+                            max = blocknumber;
+                        }
+                    }
+                },
+                None => {}
+            }
+        }
+        Ok((format!("{min:x}"), format!("{max:x}")))
     }
 }
