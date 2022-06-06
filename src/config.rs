@@ -15,6 +15,9 @@ pub struct Config<'a>{
     pub vault_host:  &'a str,
     pub vault_token: &'a str,
     pub eth_node_host: &'a str,
+    pub chain_id: u128,
+    pub gas_limit: u128,
+    pub gas_price: u128,
     pub miner_private_key: &'a str,
 }
 

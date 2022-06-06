@@ -13,9 +13,9 @@ mod dto;
 mod middleware;
 mod model;
 mod service;
+mod util;
 #[cfg(test)]
 mod test;
-mod util;
 
 use crate::config::Config;
 lazy_static! {
@@ -23,7 +23,6 @@ lazy_static! {
 }
 #[launch]
 async fn rocket() -> _ {
-    //TransactionScraper::start();
     rocket::build()
         .mount(
             "/api",

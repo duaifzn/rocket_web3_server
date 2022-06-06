@@ -1,11 +1,13 @@
 use crate::dto::raw_transaction::RawTransaction;
 use crate::dto::response_dto::{VaultAccountDto, VaultSignDto};
 use reqwest;
-use reqwest::{Response, Result};
+use reqwest::Result;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use web3::types::U256;
-
+use crate::config::Config;
+lazy_static!{
+    static ref CONFIG: Config<'static> = Config::load();
+}
 pub struct Vault {
     pub host: String,
     pub token: String,
@@ -51,9 +53,9 @@ impl Vault {
             encoding: "hex".to_string(),
             amount: "0".to_string(),
             nonce: nonce.to_string(),
-            gas_limit: "1071003".to_string(),
-            gas_price: "7".to_string(),
-            chainID: "1337".to_string(),
+            gas_limit: CONFIG.gas_limit.to_string(),
+            gas_price: CONFIG.gas_price.to_string(),
+            chainID: CONFIG.chain_id.to_string(),
         }
     }
     pub async fn create_one_account(&self, account_name: &str) -> Result<VaultAccountDto> {
