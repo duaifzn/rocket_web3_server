@@ -185,5 +185,6 @@ Content-Type: application/json
 {   
     "key": "test3211111",
     "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
-    "start_timestamp": 100000
+    "start_timestamp": 1653792086,
+    "end_timestamp": 1653792086
 }
