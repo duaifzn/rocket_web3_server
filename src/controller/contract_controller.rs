@@ -4,7 +4,7 @@ use crate::database::Mongo;
 use crate::dto::request_dto::{
     AddIssuerDto, DelIssuerDto, DeployContractDto, GetBlockhashTxsDto, GetContractAllLogDto,
     GetContractLogDto, GetHashDto, GetOneTransactionDto, HashDto, IsIssuerDto, IsRevokeDto,
-    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto,
+    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto, NotarizeHashByKeyHashDto,
 };
 use crate::dto::response_dto::{
     ApiResponse, BoolDto, ContractAddressDto, CustomContractLogDto, CustomTransactionReceiptDto,
@@ -19,7 +19,7 @@ use crate::util::eth_node::EthNode;
 use crate::util::vault::Vault;
 use hex::FromHex;
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{State};
 use rocket_okapi::openapi;
 use sha2::{Digest, Sha256};
 use std::str::FromStr;
@@ -785,9 +785,9 @@ pub async fn get_blockhash_transactions_log(
 }
 
 #[openapi]
-#[get("/contract/log/all", format = "json", data = "<body>")]
+#[post("/contract/log/all", format = "json", data = "<body>")]
 pub async fn get_all_log_of_proof_of_existence(
-    _token: user_auth_guard::Token<'_>,
+    // _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
     body: Json<GetContractAllLogDto>,
 ) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
