@@ -24,6 +24,7 @@ lazy_static! {
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
+        .attach(middleware::cors::Cors)
         .mount(
             "/api",
             openapi_get_routes![
@@ -31,6 +32,7 @@ async fn rocket() -> _ {
                 controller::user_controller::signup_one_user,
                 controller::user_controller::signin_one_user,
                 controller::user_controller::get_account_balance,
+                controller::user_controller::cors_handler,
                 controller::contract_controller::sha256_hash,
                 controller::contract_controller::send_hash,
                 controller::contract_controller::is_issuer,

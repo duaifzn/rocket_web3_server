@@ -15,6 +15,7 @@ use crate::util::vault::Vault;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
+use std::path::PathBuf;
 use std::str::FromStr;
 use web3::types::Address;
 
@@ -145,4 +146,10 @@ pub async fn get_account_balance(
         }),
         message: None,
     }))
+}
+
+#[openapi]
+#[options("/<path..>")]
+pub fn cors_handler(path: PathBuf) -> &'static str{
+    "response cors header"
 }
