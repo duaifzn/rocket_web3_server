@@ -6,6 +6,11 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web3-server.rule=Host(`deposit-x.com`)&&PathPrefix(`/api`)"
+      - "traefik.http.routers.web3-server.tls=true"
+      - "traefik.http.routers.web3-server.tls.certresolver=production"
     ports:
       - 8001:8000
     entrypoint: cargo run dev
@@ -13,7 +18,7 @@ services:
       - web3-dev
   web3-mongo:
     container_name: web3-mongo
-    image: mongo:latest
+    image: mongo:5.0.9
     restart: always
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
@@ -30,6 +35,6 @@ services:
       - web3-dev
 networks:
   web3-dev:
-    name: web3-dev
-    driver: bridge
+    external:
+      name: traefik
     

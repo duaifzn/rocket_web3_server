@@ -2290,6 +2290,7 @@ dependencies = [
  "lazy_static",
  "mongodb",
  "okapi 0.6.0-alpha-1",
+ "openssl",
  "reqwest",
  "rocket",
  "rocket_okapi",

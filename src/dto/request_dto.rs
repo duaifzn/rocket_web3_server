@@ -134,3 +134,10 @@ pub struct GetContractLogDto{
     pub start_timestamp: Option<u128>,
     pub end_timestamp: Option<u128>,
 }
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(crate = "rocket::serde")]
+pub struct NotarizeHashByKeyHashDto{
+    pub email: String,
+    pub hash: String,
+}

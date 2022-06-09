@@ -7,3 +7,4 @@ request.http
 request.vault.http
 /docker/mongo/db
 /docker/rabbitmq/data
+/docker/traefik

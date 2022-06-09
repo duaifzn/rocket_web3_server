@@ -8,12 +8,12 @@ pub fn dev() ->Config<'static>{
         mongodb_password: "root",
         mongodb_address: "web3-mongo:27017",
         mongodb_database_name: "web3-dev",
-        vault_host: "52.179.136.216:30305",
-        vault_token: "s.Z8uTnozQWThsJymRqK7Dgbre",
-        eth_node_host: "52.179.136.216:8545",
-        chain_id: 1337,
+        vault_host: "20.242.94.251:30305",
+        vault_token: "s.d9Ro8vMal7TDv53RrymCt0ZM",
+        eth_node_host: "20.231.59.102:8545",
+        chain_id: 86530,
         gas_limit: 1071003,
         gas_price: 7,
-        miner_private_key: "0x7d1fe7133ae962a50f860468ea1351f83e417dbdaab635294efdd8e6e3eef031",
+        miner_private_key: "0x0dc64def930e44654b8661bc054f1ac216baf1d3ae46f40d011caa379ee9d129",
     }
 }

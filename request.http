@@ -170,7 +170,7 @@ Content-Type: application/json
 
 ###
 
-GET http://127.0.0.1:8000/api/contract/log/all HTTP/1.1
+POST http://127.0.0.1:8000/api/contract/log/all HTTP/1.1
 Content-Type: application/json
 
 {   
@@ -184,7 +184,5 @@ Content-Type: application/json
 
 {   
     "key": "test3211111",
-    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
-    "start_timestamp": 1653792086,
-    "end_timestamp": 1653792086
+    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8"
 }

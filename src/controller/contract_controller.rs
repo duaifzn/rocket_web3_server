@@ -845,7 +845,7 @@ pub async fn get_all_log_of_proof_of_existence(
 #[openapi]
 #[get("/contract/log/event/ProofCreated", format = "json", data = "<body>")]
 pub async fn get_proof_created_log_of_proof_of_existence(
-    _token: user_auth_guard::Token<'_>,
+    // _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
     body: Json<GetContractLogDto>,
 ) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {

@@ -17,6 +17,7 @@ pub async fn insert_one_user(db: &State<Mongo>, user: Json<UserDto>) ->Result<In
         email: user.email.to_owned(),
         password: hashed,
         role: Role::User as u8,
+        public_key: None,
         create_at: Some(Local::now()),
         update_at: Some(Local::now()),
     }; 
@@ -41,5 +42,20 @@ pub async fn find_one_user(db: &State<Mongo>, user: &Json<UserDto>) ->Result<boo
     match old_user{
         Some(result) => Ok(true),
         None => Ok(false)
+    }
+}
+
+pub async fn find_one_user_public_key(db: &State<Mongo>, email: String) ->Result<Option<String>>{
+    let user = db.User.find_one(doc!{
+        "email": email.to_owned()
+    }, None).await?;
+    match user{
+        Some(result) => {
+            match result.public_key{
+                Some(key) => return Ok(Some(key)),
+                None => return Ok(None),
+            }
+        },
+        None => Ok(None)
     }
 }

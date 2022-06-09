@@ -24,6 +24,8 @@ pub struct UserSchema{
     pub password: String,
     pub role: u8,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub public_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub create_at: Option<DateTime<Local>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub update_at: Option<DateTime<Local>>,
