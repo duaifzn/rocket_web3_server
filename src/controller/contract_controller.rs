@@ -2,9 +2,8 @@ use crate::contract_interface::proof_of_existence_interface;
 use crate::contract_interface::proof_of_existence_interface::ProofOfExistence;
 use crate::database::Mongo;
 use crate::dto::request_dto::{
-    AddIssuerDto, DelIssuerDto, DeployContractDto, GetBlockhashTxsDto, GetContractAllLogDto,
-    GetContractLogDto, GetHashDto, GetOneTransactionDto, HashDto, IsIssuerDto, IsRevokeDto,
-    NotarizeHashDto, RawDto, RevokeHashDto, TransferOwnershipDto, NotarizeHashByKeyHashDto,
+    AddIssuerDto, DelIssuerDto, DeployContractDto, HashDto, NotarizeHashDto, RawDto, RevokeHashDto,
+    TransferOwnershipDto,
 };
 use crate::dto::response_dto::{
     ApiResponse, BoolDto, ContractAddressDto, CustomContractLogDto, CustomTransactionReceiptDto,
@@ -19,7 +18,7 @@ use crate::util::eth_node::EthNode;
 use crate::util::vault::Vault;
 use hex::FromHex;
 use rocket::serde::json::Json;
-use rocket::{State};
+use rocket::State;
 use rocket_okapi::openapi;
 use sha2::{Digest, Sha256};
 use std::str::FromStr;
@@ -45,7 +44,7 @@ pub async fn sha256_hash(body: Json<RawDto>) -> Json<ApiResponse<Sha256HashDto>>
 }
 
 #[openapi]
-#[post("/hash", data = "<body>")]
+#[post("/hash", format = "json", data = "<body>")]
 pub async fn send_hash(
     eth_node: &State<EthNode>,
     body: Json<HashDto>,
@@ -85,24 +84,26 @@ pub async fn send_hash(
 }
 
 #[openapi]
-#[get("/contract/isIssuer", format = "json", data = "<body>")]
+#[get("/contract/isIssuer?<contract_address>&<account_name>&<issuer_address>")]
 pub async fn is_issuer(
     _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
-    body: Json<IsIssuerDto>,
+    contract_address: String,
+    account_name: String,
+    issuer_address: String,
 ) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
-        .get_one_account(&body.account_name)
+        .get_one_account(&account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
+    let contract_address = EthNode::hex_str_to_bytes20(&contract_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
-    let issuer_address = EthNode::hex_str_to_bytes20(&body.issuer_address.replace("0x", ""))
+    let issuer_address = EthNode::hex_str_to_bytes20(&issuer_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
 
     let data = contract
@@ -146,7 +147,7 @@ pub async fn is_issuer(
 }
 
 #[openapi]
-#[post("/contract/notarizeHash", data = "<body>")]
+#[post("/contract/notarizeHash", format = "json", data = "<body>")]
 pub async fn notarize_hash(
     _token: user_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -204,24 +205,26 @@ pub async fn notarize_hash(
 }
 
 #[openapi]
-#[get("/contract/getHash", data = "<body>")]
+#[get("/contract/getHash?<contract_address>&<account_name>&<key>")]
 pub async fn get_hash(
     _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
-    body: Json<GetHashDto>,
+    contract_address: String,
+    account_name: String,
+    key: String,
 ) -> Result<Json<ApiResponse<HashValueDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
-        .get_one_account(&body.account_name)
+        .get_one_account(&account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
+    let contract_address = EthNode::hex_str_to_bytes20(&contract_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
-    let key_sha256 = EthNode::sha256_hash(&body.key);
+    let key_sha256 = EthNode::sha256_hash(&key);
     let key = EthNode::hex_str_to_bytes32(&key_sha256).map_err(error_handle_of_web3)?;
 
     let data = contract
@@ -269,7 +272,7 @@ pub async fn get_hash(
 }
 
 #[openapi]
-#[patch("/contract/revokeHash", data = "<body>")]
+#[patch("/contract/revokeHash", format = "json", data = "<body>")]
 pub async fn revoke_hash(
     _token: user_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -321,24 +324,26 @@ pub async fn revoke_hash(
 }
 
 #[openapi]
-#[get("/contract/isRevoked", data = "<body>")]
+#[get("/contract/isRevoked?<contract_address>&<account_name>&<key>")]
 pub async fn is_revoked(
     _token: user_auth_guard::Token<'_>,
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
-    body: Json<IsRevokeDto>,
+    contract_address: String,
+    account_name: String,
+    key: String,
 ) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
-        .get_one_account(&body.account_name)
+        .get_one_account(&account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
+    let contract_address = EthNode::hex_str_to_bytes20(&contract_address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
-    let key_sha256 = EthNode::sha256_hash(&body.key);
+    let key_sha256 = EthNode::sha256_hash(&key);
     let key = EthNode::hex_str_to_bytes32(&key_sha256).map_err(error_handle_of_web3)?;
 
     let data = contract
@@ -383,7 +388,7 @@ pub async fn is_revoked(
 }
 
 #[openapi]
-#[post("/contract/addIssuer", data = "<body>")]
+#[post("/contract/addIssuer", format = "json", data = "<body>")]
 pub async fn add_issuer(
     _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -434,7 +439,7 @@ pub async fn add_issuer(
 }
 
 #[openapi]
-#[delete("/contract/delIssuer", data = "<body>")]
+#[delete("/contract/delIssuer", format = "json", data = "<body>")]
 pub async fn del_issuer(
     _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -484,7 +489,7 @@ pub async fn del_issuer(
 }
 
 #[openapi]
-#[patch("/contract/transferOwnership", data = "<body>")]
+#[patch("/contract/transferOwnership", format = "json", data = "<body>")]
 pub async fn transfer_ownership(
     _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -534,7 +539,7 @@ pub async fn transfer_ownership(
 }
 
 #[openapi]
-#[post("/contract/deployContract", data = "<body>")]
+#[post("/contract/deployContract", format = "json", data = "<body>")]
 pub async fn deploy_contract(
     _token: admin_auth_guard::Token<'_>,
     db: &State<Mongo>,
@@ -586,14 +591,15 @@ pub async fn deploy_contract(
 }
 
 #[openapi]
-#[get("/contract/log/transaction", format = "json", data = "<body>")]
+#[get("/contract/log/transaction?<contract_address>&<tx_address>")]
 pub async fn get_one_transaction_log(
     _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
-    body: Json<GetOneTransactionDto>,
+    contract_address: String,
+    tx_address: String,
 ) -> Result<Json<ApiResponse<CustomTransactionReceiptDto>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
-    let tx_address = EthNode::hex_str_to_bytes32(&body.tx_address.clone().replace("0x", ""))
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
+    let tx_address = EthNode::hex_str_to_bytes32(&tx_address.clone().replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let transaction_temp = eth_node
         .get_transaction(H256::from(tx_address))
@@ -689,14 +695,15 @@ pub async fn get_one_transaction_log(
 }
 
 #[openapi]
-#[get("/contract/log/blockhash", format = "json", data = "<body>")]
+#[get("/contract/log/blockhash?<contract_address>&<blockhash>")]
 pub async fn get_blockhash_transactions_log(
     _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
-    body: Json<GetBlockhashTxsDto>,
+    contract_address: String,
+    blockhash: String,
 ) -> Result<Json<ApiResponse<Vec<CustomTransactionReceiptDto>>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
-    let blockhash = EthNode::hex_str_to_bytes32(&body.blockhash.clone().replace("0x", ""))
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
+    let blockhash = EthNode::hex_str_to_bytes32(&blockhash.clone().replace("0x", ""))
         .map_err(error_handle_of_web3)?;
     let (transactions, timestamp_temp) = eth_node
         .get_all_transactions_of_blockhash(H256::from(blockhash))
@@ -785,13 +792,13 @@ pub async fn get_blockhash_transactions_log(
 }
 
 #[openapi]
-#[post("/contract/log/all", format = "json", data = "<body>")]
+#[get("/contract/log/all?<contract_address>")]
 pub async fn get_all_log_of_proof_of_existence(
     // _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
-    body: Json<GetContractAllLogDto>,
+    contract_address: String,
 ) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let filter = FilterBuilder::default()
         .from_block(BlockNumber::Earliest)
         .to_block(BlockNumber::Latest)
@@ -843,14 +850,19 @@ pub async fn get_all_log_of_proof_of_existence(
 }
 
 #[openapi]
-#[get("/contract/log/event/ProofCreated", format = "json", data = "<body>")]
+#[get(
+    "/contract/log/event/ProofCreated?<contract_address>&<key>&<start_timestamp>&<end_timestamp>"
+)]
 pub async fn get_proof_created_log_of_proof_of_existence(
     // _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
-    body: Json<GetContractLogDto>,
+    contract_address: String,
+    key: String,
+    start_timestamp: Option<u128>,
+    end_timestamp: Option<u128>,
 ) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
-    let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
-    let key_sha256 = EthNode::sha256_hash(&body.key.clone()).to_lowercase();
+    let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
+    let key_sha256 = EthNode::sha256_hash(&key.clone()).to_lowercase();
     let filter = FilterBuilder::default()
         .from_block(BlockNumber::Earliest)
         .to_block(BlockNumber::Latest)
@@ -918,20 +930,21 @@ pub async fn get_proof_created_log_of_proof_of_existence(
         .collect();
     let mut contract_logs: Vec<CustomContractLogDto> = vec![];
 
-    if body.start_timestamp.is_some() && body.end_timestamp.is_some() {
+    if start_timestamp.is_some() && end_timestamp.is_some() {
         for contract_log in contract_logs_temp {
             let t = eth_node
-                .get_blockhash_timestamp(H256::from_str(&contract_log.blockhash.clone().unwrap()).unwrap())
+                .get_blockhash_timestamp(
+                    H256::from_str(&contract_log.blockhash.clone().unwrap()).unwrap(),
+                )
                 .await
                 .map_err(error_handle_of_web3)?
                 .unwrap();
             let block_time = format!("{:?}", t).parse::<u128>().unwrap();
-            if block_time >= body.start_timestamp.unwrap() && block_time <= body.end_timestamp.unwrap(){
+            if block_time >= start_timestamp.unwrap() && block_time <= end_timestamp.unwrap() {
                 contract_logs.push(contract_log)
             }
         }
-    }
-    else{
+    } else {
         contract_logs = contract_logs_temp;
     }
     Ok(Json(ApiResponse {

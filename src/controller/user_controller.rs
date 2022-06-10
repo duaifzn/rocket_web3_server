@@ -1,7 +1,5 @@
 use crate::database::Mongo;
-use crate::dto::request_dto::{
-    GetAccountBalanceDto, UserDto,
-};
+use crate::dto::request_dto::UserDto;
 use crate::dto::response_dto::{
     AddressBalanceDto, ApiResponse, CreateOneUserDto, SigninOneUserDto,
 };
@@ -25,7 +23,7 @@ pub fn index(_token: Token<'_>) -> &'static str {
     "Hello, world!"
 }
 #[openapi]
-#[post("/signup", data = "<body>")]
+#[post("/signup", format = "json", data = "<body>")]
 pub async fn signup_one_user(
     db: &State<Mongo>,
     vault: &State<Vault>,
@@ -84,7 +82,7 @@ pub async fn signup_one_user(
 }
 
 #[openapi]
-#[post("/signin", data = "<body>")]
+#[post("/signin", format = "json", data = "<body>")]
 pub async fn signin_one_user(
     db: &State<Mongo>,
     body: Json<UserDto>,
@@ -120,15 +118,15 @@ pub async fn signin_one_user(
 }
 
 #[openapi]
-#[get("/balance", data = "<body>")]
+#[get("/balance?<account_name>")]
 pub async fn get_account_balance(
     _token: Token<'_>,
     eth_node: &State<EthNode>,
     vault: &State<Vault>,
-    body: Json<GetAccountBalanceDto>,
+    account_name: String,
 ) -> Result<Json<ApiResponse<AddressBalanceDto>>, Json<ApiResponse<String>>> {
     let res = vault
-        .get_one_account(&body.account_name)
+        .get_one_account(&account_name)
         .await
         .map_err(error_handle_of_reqwest)?;
     let address = Address::from_str(&res.data.address.replace("0x", "")).unwrap();
@@ -150,6 +148,6 @@ pub async fn get_account_balance(
 
 #[openapi]
 #[options("/<path..>")]
-pub fn cors_handler(path: PathBuf) -> &'static str{
+pub fn cors_handler(path: PathBuf) -> &'static str {
     "response cors header"
 }
