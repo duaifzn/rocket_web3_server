@@ -77,10 +77,10 @@ Content-Type: application/json
 {
     "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
     "account_name": "duaifzn123@gmail.com",
-    "key": "test3211111",
+    "key": "test112233666889",
     "value": "test456"
 }
-
+###0x9aeb7e787c920733f64df886c9f30b3f74d7500c8a12d345830e50c79999213c
 ###0x4af7110aa9d5f18ee5f1cd65d4fedeb4cad867af2e9c65c1a7fb8f358f41eff0
 PATCH http://127.0.0.1:8000/api/contract/revokeHash HTTP/1.1
 Content-Type: application/json
@@ -95,7 +95,7 @@ Content-Type: application/json
 GET http://127.0.0.1:8000/api/contract/isRevoked?contract_address=0xcbd60da5f6dc1641c666a12e231d585379cc0e03&account_name=duaifzn123@gmail.com&key=test32111 HTTP/1.1
 
 ###
-GET http://127.0.0.1:8000/api/contract/getHash?contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8&account_name=duaifzn123@gmail.com&key=test3211111 HTTP/1.1
+GET http://127.0.0.1:8000/api/contract/getHash?contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8&account_name=duaifzn123@gmail.com&key=test112233666889 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:8000/api/contract/delIssuer HTTP/1.1
@@ -129,16 +129,12 @@ GET http://127.0.0.1:8000/api/contract/log/blockhash?contract_address=0xf1ce66ed
 
 ###0xb531bc2a581d9dc2c476c55d3f9251a3e104b4db0c9d66da04564fc73000d711
 
-GET http://127.0.0.1:8000/api/contract/log/transaction?contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8&tx_address=0x4af7110aa9d5f18ee5f1cd65d4fedeb4cad867af2e9c65c1a7fb8f358f41eff0 HTTP/1.1
+GET http://127.0.0.1:8000/api/contract/log/transaction?contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8&tx_address=0x9aeb7e787c920733f64df886c9f30b3f74d7500c8a12d345830e50c79999213c HTTP/1.1
 
 ###
 
-POST http://127.0.0.1:8000/api/contract/log/all HTTP/1.1
-Content-Type: application/json
+GET http://127.0.0.1:8000/api/contract/log/all?contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8 HTTP/1.1
 
-{   
-    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8"
-}
 
 ###
 

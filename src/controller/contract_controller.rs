@@ -24,7 +24,7 @@ use sha2::{Digest, Sha256};
 use std::str::FromStr;
 use uuid::Uuid;
 use web3::ethabi::{FixedBytes, RawLog};
-use web3::types::{BlockNumber, Bytes, FilterBuilder, H160, H256, U64};
+use web3::types::{BlockNumber, Bytes, FilterBuilder, H160, H256};
 
 #[openapi]
 #[get("/hash", data = "<body>")]
@@ -175,6 +175,29 @@ pub async fn notarize_hash(
             web3::ethabi::Token::FixedBytes(value.to_vec()),
         ])
         .unwrap();
+
+    let contract_address = EthNode::hex_str_to_bytes20(&body.contract_address.replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
+        .map_err(error_handle_of_web3)?;
+    let call_req = web3::types::CallRequest {
+        from: Some(web3::types::Address::from(account_address)),
+        to: Some(web3::types::Address::from(contract_address)),
+        gas: None,
+        gas_price: None,
+        value: None,
+        data: Some(Bytes(data.clone())),
+        transaction_type: None,
+        access_list: None,
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
+    };
+    let _ = eth_node
+        .web3
+        .eth()
+        .call(call_req, None)
+        .await
+        .map_err(error_handle_of_web3)?;
 
     let count = eth_node
         .get_transaction_count(&res.data.address.replace("0x", ""))
