@@ -4,8 +4,8 @@ pub fn dev() ->Config<'static>{
     Config { 
         jwt_secret: "secret",
         jwt_expire: 24*60*60,
-        mongodb_username: "root",
-        mongodb_password: "root",
+        mongodb_username: "user",
+        mongodb_password: "pass",
         mongodb_address: "web3-mongo:27017",
         mongodb_database_name: "web3-dev",
         vault_host: "20.242.94.251:30305",
