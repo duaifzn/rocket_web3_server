@@ -25,7 +25,7 @@ POST http://127.0.0.1:8000/api/admin/money/transfer HTTP/1.1
 Content-Type: application/json
 
 {
-    "to_account_name": "duaifzn12345@gmail.com"
+    "to_account_name": "duaifzn123@gmail.com"
 }
 
 ###
@@ -75,7 +75,7 @@ POST http://127.0.0.1:8000/api/contract/notarizeHash HTTP/1.1
 Content-Type: application/json
 
 {
-    "contract_address": "0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8",
+    "contract_address": "0x5124a91fd65dee893305d26f992939e051764f07",
     "account_name": "duaifzn123@gmail.com",
     "key": "test112233666889",
     "value": "test456"
@@ -141,3 +141,6 @@ GET http://127.0.0.1:8000/api/contract/log/all?contract_address=0xf1ce66ed87b9fb
 GET http://127.0.0.1:8000/api/contract/log/event/ProofCreated?key=test3211111&contract_address=0xf1ce66ed87b9fbbfeef17789f8c1f2a7aabde7a8&start_timestamp=1653792085&end_timestamp=1653792085 HTTP/1.1
 
 ###
+
+#  "tx_address": "0x7d49bd8eb441daa4bce17fb3e4c127318c0daad4876ce3a76de4920c496dc413",
+#     "contract_address": "0x5124a91fd65dee893305d26f992939e051764f07"

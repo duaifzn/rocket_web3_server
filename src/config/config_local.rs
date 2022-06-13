@@ -10,10 +10,10 @@ pub fn local() ->Config<'static>{
         mongodb_database_name: "dev",
         vault_host: "localhost:30305",
         vault_token: "s.9ajvNBkgKrdOOi4g08tSuLTR",
-        eth_node_host: "52.179.136.216:8545",
-        chain_id: 1337,
+        eth_node_host: "20.231.59.102:8545",
+        chain_id: 86530,
         gas_limit: 1071003,
         gas_price: 7,
-        miner_private_key: "0x7d1fe7133ae962a50f860468ea1351f83e417dbdaab635294efdd8e6e3eef031",
+        miner_private_key: "0x0dc64def930e44654b8661bc054f1ac216baf1d3ae46f40d011caa379ee9d129",
     }
 }
