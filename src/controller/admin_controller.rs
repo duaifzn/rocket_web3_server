@@ -9,6 +9,7 @@ use crate::util::error_handle::{
 };
 use crate::util::eth_node::EthNode;
 use crate::util::vault::Vault;
+use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
@@ -21,7 +22,7 @@ pub async fn money_transfer(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<MoneyTransferDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let res = vault
         .get_one_account(&body.to_account_name)
         .await

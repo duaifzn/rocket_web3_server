@@ -17,6 +17,7 @@ use crate::util::error_handle::{
 use crate::util::eth_node::EthNode;
 use crate::util::vault::Vault;
 use hex::FromHex;
+use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
@@ -92,7 +93,7 @@ pub async fn is_issuer(
     contract_address: String,
     account_name: String,
     issuer_address: String,
-) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<BoolDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
         .get_one_account(&account_name)
@@ -154,7 +155,7 @@ pub async fn notarize_hash(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<NotarizeHashDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
@@ -236,7 +237,7 @@ pub async fn get_hash(
     contract_address: String,
     account_name: String,
     key: String,
-) -> Result<Json<ApiResponse<HashValueDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<HashValueDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
         .get_one_account(&account_name)
@@ -302,7 +303,7 @@ pub async fn revoke_hash(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<RevokeHashDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
@@ -355,7 +356,7 @@ pub async fn is_revoked(
     contract_address: String,
     account_name: String,
     key: String,
-) -> Result<Json<ApiResponse<BoolDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<BoolDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let res = vault
         .get_one_account(&account_name)
@@ -418,7 +419,7 @@ pub async fn add_issuer(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<AddIssuerDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
@@ -469,7 +470,7 @@ pub async fn del_issuer(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<DelIssuerDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
@@ -519,7 +520,7 @@ pub async fn transfer_ownership(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<TransferOwnershipDto>,
-) -> Result<Json<ApiResponse<TxAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<TxAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&body.contract_address);
     let res = vault
         .get_one_account(&body.account_name)
@@ -569,7 +570,7 @@ pub async fn deploy_contract(
     vault: &State<Vault>,
     eth_node: &State<EthNode>,
     body: Json<DeployContractDto>,
-) -> Result<Json<ApiResponse<ContractAddressDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<ContractAddressDto>>, (Status, Json<ApiResponse<String>>)> {
     let bytecode = include_str!("../../contract/bytecode.json");
 
     let res = vault
@@ -620,7 +621,7 @@ pub async fn get_one_transaction_log(
     eth_node: &State<EthNode>,
     contract_address: String,
     tx_address: String,
-) -> Result<Json<ApiResponse<CustomTransactionReceiptDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<CustomTransactionReceiptDto>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let tx_address = EthNode::hex_str_to_bytes32(&tx_address.clone().replace("0x", ""))
         .map_err(error_handle_of_web3)?;
@@ -724,7 +725,7 @@ pub async fn get_blockhash_transactions_log(
     eth_node: &State<EthNode>,
     contract_address: String,
     blockhash: String,
-) -> Result<Json<ApiResponse<Vec<CustomTransactionReceiptDto>>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<Vec<CustomTransactionReceiptDto>>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let blockhash = EthNode::hex_str_to_bytes32(&blockhash.clone().replace("0x", ""))
         .map_err(error_handle_of_web3)?;
@@ -820,7 +821,7 @@ pub async fn get_all_log_of_proof_of_existence(
     // _token: user_auth_guard::Token<'_>,
     eth_node: &State<EthNode>,
     contract_address: String,
-) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let filter = FilterBuilder::default()
         .from_block(BlockNumber::Earliest)
@@ -883,7 +884,7 @@ pub async fn get_proof_created_log_of_proof_of_existence(
     key: String,
     start_timestamp: Option<u128>,
     end_timestamp: Option<u128>,
-) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<Vec<CustomContractLogDto>>>, (Status, Json<ApiResponse<String>>)> {
     let contract = eth_node.connect_contract_of_proof_of_existence(&contract_address);
     let key_sha256 = EthNode::sha256_hash(&key.clone()).to_lowercase();
     let filter = FilterBuilder::default()

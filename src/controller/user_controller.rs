@@ -10,6 +10,7 @@ use crate::util::auth::auth_token_generate;
 use crate::util::error_handle::{error_handle_of_reqwest, error_handle_of_web3};
 use crate::util::eth_node::EthNode;
 use crate::util::vault::Vault;
+use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
@@ -28,56 +29,68 @@ pub async fn signup_one_user(
     db: &State<Mongo>,
     vault: &State<Vault>,
     body: Json<UserDto>,
-) -> Json<ApiResponse<CreateOneUserDto>> {
+) -> Result<Json<ApiResponse<CreateOneUserDto>>, (Status, Json<ApiResponse<String>>)> {
     let is_duplicate = find_one_user(db, &body).await;
     match is_duplicate {
         Ok(result) => {
             if result {
-                return Json(ApiResponse {
-                    success: false,
-                    code: 401,
-                    json: None,
-                    message: Some("user duplicate!".to_string()),
-                });
+                return Err((
+                    Status::Conflict,
+                    Json(ApiResponse {
+                        success: false,
+                        code: 409,
+                        json: None,
+                        message: Some("user duplicate!".to_string()),
+                    }),
+                ));
             }
         }
         Err(err) => {
-            return Json(ApiResponse {
-                success: false,
-                code: 500,
-                json: None,
-                message: Some(err.to_string()),
-            })
+            return Err((
+                Status::InternalServerError,
+                Json(ApiResponse {
+                    success: false,
+                    code: 500,
+                    json: None,
+                    message: Some(err.to_string()),
+                }),
+            ))
         }
     }
     let vault_res = vault.create_one_account(&body.email.clone()).await;
     match vault_res {
         Ok(_) => {}
         Err(err) => {
-            return Json(ApiResponse {
-                success: false,
-                code: 500,
-                json: None,
-                message: Some(err.to_string()),
-            })
+            return Err((
+                Status::InternalServerError,
+                Json(ApiResponse {
+                    success: false,
+                    code: 500,
+                    json: None,
+                    message: Some(err.to_string()),
+                }),
+            ))
         }
     }
     let data = insert_one_user(db, body).await;
     match data {
-        Ok(result) => Json(ApiResponse {
+        Ok(result) => Ok(Json(ApiResponse {
             success: true,
             code: 200,
             json: Some(CreateOneUserDto {
                 id: result.inserted_id.as_object_id().unwrap().to_string(),
             }),
             message: None,
-        }),
-        Err(err) => Json(ApiResponse {
-            success: false,
-            code: 500,
-            json: None,
-            message: Some(err.to_string()),
-        }),
+        })),
+        Err(err) => Err((
+            Status::InternalServerError,
+            Json(ApiResponse {
+                success: false,
+                code: 500,
+                json: None,
+                message: Some(err.to_string()),
+            }),
+        )),
     }
 }
 
@@ -86,34 +99,40 @@ pub async fn signup_one_user(
 pub async fn signin_one_user(
     db: &State<Mongo>,
     body: Json<UserDto>,
-) -> Json<ApiResponse<SigninOneUserDto>> {
+) -> Result<Json<ApiResponse<SigninOneUserDto>>, (Status, Json<ApiResponse<String>>)> {
     let data = verify_one_user(db, body).await;
     match data {
         Ok((result, user)) => {
             if result {
                 let role = Role::from_u8(user.unwrap().role);
                 let token = auth_token_generate(role);
-                return Json(ApiResponse {
+                return Ok(Json(ApiResponse {
                     success: true,
                     code: 200,
                     json: Some(SigninOneUserDto { token: token }),
                     message: None,
-                });
+                }));
             } else {
-                return Json(ApiResponse {
-                    success: false,
-                    code: 401,
-                    json: None,
-                    message: Some("verify error!".to_string()),
-                });
+                return Err((
+                    Status::Unauthorized,
+                    Json(ApiResponse {
+                        success: false,
+                        code: 401,
+                        json: None,
+                        message: Some("verify error!".to_string()),
+                    }),
+                ));
             }
         }
-        Err(err) => Json(ApiResponse {
-            success: false,
-            code: 500,
-            json: None,
-            message: Some(err.to_string()),
-        }),
+        Err(err) => Err((
+            Status::InternalServerError,
+            Json(ApiResponse {
+                success: false,
+                code: 500,
+                json: None,
+                message: Some(err.to_string()),
+            }),
+        )),
     }
 }
 
@@ -124,7 +143,7 @@ pub async fn get_account_balance(
     eth_node: &State<EthNode>,
     vault: &State<Vault>,
     account_name: String,
-) -> Result<Json<ApiResponse<AddressBalanceDto>>, Json<ApiResponse<String>>> {
+) -> Result<Json<ApiResponse<AddressBalanceDto>>, (Status, Json<ApiResponse<String>>)> {
     let res = vault
         .get_one_account(&account_name)
         .await
