@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  web3-server:
+    container_name: web3-server
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web3-server.rule=Host(`10.26.3.165`)&&(PathPrefix(`/api`)||PathPrefix(`/swagger-ui`))"
+    ports:
+      - 8001:8000
+    entrypoint: cargo run prod
+    networks:
+      - web3
+  web3-mongo:
+    container_name: web3-mongo
+    image: mongo:5.0.9
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - MONGO_INITDB_DATABASE=web3
+      - MONGO_INITDB_USERNAME=user
+      - MONGO_INITDB_PASSWORD=pass
+    ports:
+      - 27018:27017
+    volumes:
+      - ./docker/mongo/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./docker/mongo/db:/data/db
+    networks:
+      - web3
+networks:
+  web3:
+    external:
+      name: traefik
+    
