@@ -27,6 +27,9 @@ use uuid::Uuid;
 use web3::ethabi::{FixedBytes, RawLog};
 use web3::types::{BlockNumber, Bytes, FilterBuilder, H160, H256};
 
+/// # Unuse
+///
+/// test route.
 #[openapi]
 #[get("/hash", data = "<body>")]
 pub async fn sha256_hash(body: Json<RawDto>) -> Json<ApiResponse<Sha256HashDto>> {
@@ -44,6 +47,9 @@ pub async fn sha256_hash(body: Json<RawDto>) -> Json<ApiResponse<Sha256HashDto>>
     })
 }
 
+/// # Unuse
+///
+/// test route.
 #[openapi]
 #[post("/hash", format = "json", data = "<body>")]
 pub async fn send_hash(
@@ -84,6 +90,9 @@ pub async fn send_hash(
     }
 }
 
+/// # Check if issuer_address is issuer or not
+///
+/// use isIssuer method of contract.
 #[openapi]
 #[get("/contract/isIssuer?<contract_address>&<account_name>&<issuer_address>")]
 pub async fn is_issuer(
@@ -147,6 +156,9 @@ pub async fn is_issuer(
     }))
 }
 
+/// # Post key/value to contract
+///
+/// use notarizeHash method of contract.
 #[openapi]
 #[post("/contract/notarizeHash", format = "json", data = "<body>")]
 pub async fn notarize_hash(
@@ -228,6 +240,9 @@ pub async fn notarize_hash(
     }))
 }
 
+/// # Get value by key
+///
+/// use getHash method of contract.
 #[openapi]
 #[get("/contract/getHash?<contract_address>&<account_name>&<key>")]
 pub async fn get_hash(
@@ -295,6 +310,9 @@ pub async fn get_hash(
     }))
 }
 
+/// # Revoke value by key
+///
+/// use revokeHash method of contract.
 #[openapi]
 #[patch("/contract/revokeHash", format = "json", data = "<body>")]
 pub async fn revoke_hash(
@@ -347,6 +365,9 @@ pub async fn revoke_hash(
     }))
 }
 
+/// # Check if key/value is revoked or not
+///
+/// use revokeHash method of contract.
 #[openapi]
 #[get("/contract/isRevoked?<contract_address>&<account_name>&<key>")]
 pub async fn is_revoked(
@@ -411,6 +432,9 @@ pub async fn is_revoked(
     }))
 }
 
+/// # Add one issuer
+///
+/// use addIssuer method of contract.
 #[openapi]
 #[post("/contract/addIssuer", format = "json", data = "<body>")]
 pub async fn add_issuer(
@@ -462,6 +486,9 @@ pub async fn add_issuer(
     }))
 }
 
+/// # Delete one issuer
+///
+/// use delIssuer method of contract.
 #[openapi]
 #[delete("/contract/delIssuer", format = "json", data = "<body>")]
 pub async fn del_issuer(
@@ -512,6 +539,9 @@ pub async fn del_issuer(
     }))
 }
 
+/// # Transfer contract ownership
+/// 
+/// use transferOwnership method of contract.
 #[openapi]
 #[patch("/contract/transferOwnership", format = "json", data = "<body>")]
 pub async fn transfer_ownership(
@@ -562,6 +592,9 @@ pub async fn transfer_ownership(
     }))
 }
 
+/// # Deploy one contract
+/// 
+/// use deployContract method of contract.
 #[openapi]
 #[post("/contract/deployContract", format = "json", data = "<body>")]
 pub async fn deploy_contract(
@@ -614,6 +647,9 @@ pub async fn deploy_contract(
     }))
 }
 
+/// # Get one transaction log
+/// 
+/// get one transaction log from eth node.
 #[openapi]
 #[get("/contract/log/transaction?<contract_address>&<tx_address>")]
 pub async fn get_one_transaction_log(
@@ -718,6 +754,9 @@ pub async fn get_one_transaction_log(
     }))
 }
 
+/// # Get all transaction log by one blockhash
+/// 
+/// get all transaction log by blockhash from eth node.
 #[openapi]
 #[get("/contract/log/blockhash?<contract_address>&<blockhash>")]
 pub async fn get_blockhash_transactions_log(
@@ -815,6 +854,9 @@ pub async fn get_blockhash_transactions_log(
     }))
 }
 
+/// # Get contract all log
+/// 
+/// get contract all log.
 #[openapi]
 #[get("/contract/log/all?<contract_address>")]
 pub async fn get_all_log_of_proof_of_existence(
@@ -873,6 +915,9 @@ pub async fn get_all_log_of_proof_of_existence(
     }))
 }
 
+/// # Get contract log by custom timestamp
+/// 
+/// get contract log by custom timestamp.
 #[openapi]
 #[get(
     "/contract/log/event/ProofCreated?<contract_address>&<key>&<start_timestamp>&<end_timestamp>"

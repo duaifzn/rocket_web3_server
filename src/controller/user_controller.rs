@@ -18,11 +18,18 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use web3::types::Address;
 
+/// # Unuse
+///
+/// Test route.
 #[openapi]
 #[get("/")]
 pub fn index(_token: Token<'_>) -> &'static str {
     "Hello, world!"
 }
+
+/// # Sign up
+///
+/// sign up.
 #[openapi]
 #[post("/signup", format = "json", data = "<body>")]
 pub async fn signup_one_user(
@@ -94,6 +101,9 @@ pub async fn signup_one_user(
     }
 }
 
+/// # Sign in
+///
+/// sign in.
 #[openapi]
 #[post("/signin", format = "json", data = "<body>")]
 pub async fn signin_one_user(
@@ -136,6 +146,9 @@ pub async fn signin_one_user(
     }
 }
 
+/// # Get one account balance
+///
+/// get one account balance
 #[openapi]
 #[get("/balance?<account_name>")]
 pub async fn get_account_balance(
@@ -165,6 +178,9 @@ pub async fn get_account_balance(
     }))
 }
 
+/// # Cors
+///
+/// cors route.
 #[openapi]
 #[options("/<path..>")]
 pub fn cors_handler(path: PathBuf) -> &'static str {

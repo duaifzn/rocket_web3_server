@@ -9,7 +9,7 @@ pub fn prod() ->Config<'static>{
         mongodb_address: "web3-mongo:27017",
         mongodb_database_name: "web3",
         vault_host: "10.26.3.165:30305",
-        vault_token: "s.xm1qKCL0DdDIxNBKKvODrgME",
+        vault_token: "s.qgNdGJiWrNf2my3n6AXaNAQY",
         eth_node_host: "10.26.3.162:8545",
         chain_id: 86532,
         gas_limit: 1071003,

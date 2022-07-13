@@ -15,6 +15,9 @@ use rocket::State;
 use rocket_okapi::openapi;
 use web3::types::{Address};
 
+/// # Admin transfer money to one account
+///
+/// admin transfer money to one account.
 #[openapi]
 #[post("/admin/money/transfer", format = "json", data = "<body>")]
 pub async fn money_transfer(
