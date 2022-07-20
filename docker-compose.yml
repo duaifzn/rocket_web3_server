@@ -10,6 +10,7 @@ services:
     ports:
       - 8001:8000
     entrypoint: cargo run prod
+    # entrypoint: cargo run --example seed prod
     networks:
       - web3
   web3-mongo:

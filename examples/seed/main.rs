@@ -26,20 +26,12 @@ async fn main() {
     let seed = vec![
         UserSchema{
             id: None,
-            email: "duaifzn1234@gmail.com".to_owned(),
-            password: hash("123".to_owned(), DEFAULT_COST).unwrap(),
+            email: "admin123@gmail.com".to_owned(),
+            password: hash("admin123".to_owned(), DEFAULT_COST).unwrap(),
             role: Role::Admin as u8,
             create_at: Some(Local::now()),
             update_at: Some(Local::now()),
         },
-        UserSchema{
-            id: None,
-            email: "duaifzn12345@gmail.com".to_owned(),
-            password: hash("123".to_owned(), DEFAULT_COST).unwrap(),
-            role: Role::Admin as u8,
-            create_at: Some(Local::now()),
-            update_at: Some(Local::now()),
-        }
     ];
 
     let _ = db.User.insert_many(seed, None).await;
@@ -47,15 +39,10 @@ async fn main() {
 
     println!("####### vault seed start #######");
     let vault = Vault::new(CONFIG.vault_host, CONFIG.vault_token);
-    let a = vault.create_one_account("duaifzn1234@gmail.com").await;
+    let a = vault.create_one_account("admin123@gmail.com").await;
     match a{
         Ok(_) => {},
         Err(err) => println!("{:?}", err)
-    } 
-    let b = vault.create_one_account("duaifzn12345@gmail.com").await;
-    match b{
-        Ok(_) => {},
-        Err(err) => println!("{:?}", err)
-    } 
+    }
     println!("####### vault seed complete #######");
 }
