@@ -13,7 +13,7 @@ pub fn prod() ->Config<'static>{
         eth_node_host: "10.26.3.162:8545",
         chain_id: 86532,
         gas_limit: 1071003,
-        gas_price: 7,
+        gas_price: 25000,
         miner_private_key: "0x08a1aa1bef5948f97454d6ca9c4b96c07b23a666267b3c5457040510ac19cdb0",
     }
 }
