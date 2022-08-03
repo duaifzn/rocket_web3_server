@@ -9,8 +9,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web3-server.rule=Host(`211.73.81.185`)&&(PathPrefix(`/api`)||PathPrefix(`/swagger-ui`))"
-      - "traefik.http.routers.web3-server.tls=true"
-      - "traefik.http.routers.web3-server.tls.certresolver=production"
     ports:
       - 8001:8000
     entrypoint: cargo run dev
