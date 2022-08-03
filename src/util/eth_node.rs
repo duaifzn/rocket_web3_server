@@ -7,12 +7,12 @@ use secp256k1::SecretKey;
 use sha2::{Digest, Sha256};
 use std::path::Path;
 use std::str::FromStr;
-use web3::contract::{Contract};
+use web3::contract::Contract;
 use web3::ethabi::{Events, Log, RawLog};
 use web3::transports::Http;
 use web3::types::{
     Address, BlockId, BlockNumber, Bytes, FilterBuilder, Transaction, TransactionId,
-    TransactionParameters, TransactionReceipt, TransactionRequest, H160, H256, U256,
+    TransactionParameters, TransactionReceipt, H160, H256, U256,
 };
 use web3::Error::{Decoder, InvalidResponse};
 use web3::{self, Result, Web3};
@@ -36,7 +36,11 @@ impl EthNode {
         }
     }
     pub fn hex_str_to_bytes20(param: &str) -> web3::Result<[u8; 20]> {
-        let temp = Vec::from_hex(param).unwrap();
+        let temp = Vec::from_hex(param);
+        let temp = match temp {
+            Ok(result) => result,
+            Err(err) => return Err(Decoder(format!("hex convert error: {:?}", err)))
+        };
         if temp.len() > 20 {
             return Err(Decoder("hex string lengh > 20 after convert!".to_string()));
         }
@@ -45,7 +49,11 @@ impl EthNode {
         Ok(bytes20)
     }
     pub fn hex_str_to_bytes32(param: &str) -> web3::Result<[u8; 32]> {
-        let temp = Vec::from_hex(param).unwrap();
+        let temp = Vec::from_hex(param);
+        let temp = match temp {
+            Ok(result) => result,
+            Err(err) => return Err(Decoder(format!("hex convert error: {:?}", err)))
+        };
         if temp.len() > 32 {
             return Err(Decoder("hex string lengh > 32 after convert!".to_string()));
         }
@@ -231,24 +239,28 @@ impl EthNode {
             .build();
         let filter = self.web3.eth_filter().create_logs_filter(filter).await?;
         let logs = filter.logs().await?;
-        for log in logs{
-            let time = self.get_blockhash_timestamp(log.block_hash.unwrap()).await?;
-            match time{
-                Some(t) =>{
+        for log in logs {
+            let time = self
+                .get_blockhash_timestamp(log.block_hash.unwrap())
+                .await?;
+            match time {
+                Some(t) => {
                     let a = format!("{:?}", t).parse::<u128>().unwrap();
-                    let blocknumber = format!("{:?}", log.block_number.unwrap()).parse::<u128>().unwrap();
-                    if a >= start && a <= end{
-                        if min == 0{
+                    let blocknumber = format!("{:?}", log.block_number.unwrap())
+                        .parse::<u128>()
+                        .unwrap();
+                    if a >= start && a <= end {
+                        if min == 0 {
                             min = blocknumber;
                         }
-                        if blocknumber < min{
+                        if blocknumber < min {
                             min = blocknumber;
                         }
-                        if blocknumber > max{
+                        if blocknumber > max {
                             max = blocknumber;
                         }
                     }
-                },
+                }
                 None => {}
             }
         }

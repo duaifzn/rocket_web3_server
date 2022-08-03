@@ -18,15 +18,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use web3::types::Address;
 
-/// # Unuse
-///
-/// Test route.
-#[openapi]
-#[get("/")]
-pub fn index(_token: Token<'_>) -> &'static str {
-    "Hello, world!"
-}
-
 /// # Sign up
 ///
 /// sign up.
