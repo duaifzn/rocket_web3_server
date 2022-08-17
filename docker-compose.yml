@@ -23,11 +23,13 @@ services:
       - MONGO_INITDB_DATABASE=web3
       - MONGO_INITDB_USERNAME=user
       - MONGO_INITDB_PASSWORD=pass
+    command: [--auth, --quiet, --logpath=/var/log/mongodb/mongod.log]
     ports:
       - 27018:27017
     volumes:
       - ./docker/mongo/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./docker/mongo/db:/data/db
+      - ./docker/mongo/log:/var/log
     networks:
       - web3
 networks:
