@@ -3,6 +3,16 @@ services:
   web3-server:
     container_name: web3-server
     image: rocket_web3_server_web3-server:latest
+    env_file:
+      - .env
+    environment:
+      - VAULT_HOST=${VAULT_HOST}
+      - VAULT_TOKEN=${VAULT_TOKEN}
+      - ETH_NODE_HOST=${ETH_NODE_HOST}
+      - CHAIN_ID=${CHAIN_ID}
+      - GAS_LIMIT=${GAS_LIMIT}
+      - GAS_PRICE=${GAS_PRICE}
+      - MINER_PRIVATE_KEY=${MINER_PRIVATE_KEY}
     restart: always
     labels:
       - "traefik.enable=true"

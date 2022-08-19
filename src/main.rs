@@ -61,7 +61,7 @@ async fn rocket() -> _ {
         .manage(database::Mongo::connect().await)
         .manage(util::eth_node::EthNode::connect())
         .manage(util::vault::Vault::new(
-            CONFIG.vault_host,
-            CONFIG.vault_token,
+            &CONFIG.vault_host,
+            &CONFIG.vault_token,
         ))
 }

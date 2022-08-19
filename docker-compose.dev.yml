@@ -6,6 +6,14 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     restart: always
+    environment:
+      - VAULT_HOST=211.73.81.185:30305
+      - VAULT_TOKEN=s.WH1QFR0GzWQieaG43ZhgIoiw
+      - ETH_NODE_HOST=211.73.81.45:8545
+      - CHAIN_ID=86532
+      - GAS_LIMIT=1071003
+      - GAS_PRICE=25000
+      - MINER_PRIVATE_KEY=0x08a1aa1bef5948f97454d6ca9c4b96c07b23a666267b3c5457040510ac19cdb0
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web3-server.rule=Host(`211.73.81.185`)&&(PathPrefix(`/api`)||PathPrefix(`/swagger-ui`))"

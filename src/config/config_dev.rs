@@ -1,19 +1,25 @@
-use crate::config::Config;
+use crate::config::{Config, ConfigEnv};
 
-pub fn dev() ->Config<'static>{
-    Config { 
+pub fn dev() -> Config<'static> {
+    Config {
         jwt_secret: "secret",
-        jwt_expire: 24*60*60,
+        jwt_expire: 24 * 60 * 60,
         mongodb_username: "user",
         mongodb_password: "pass",
         mongodb_address: "web3-mongo:27017",
         mongodb_database_name: "web3-dev",
-        vault_host: "211.73.81.185:30305",
-        vault_token: "s.WH1QFR0GzWQieaG43ZhgIoiw",
-        eth_node_host: "211.73.81.45:8545",
-        chain_id: 86532,
-        gas_limit: 1071003,
-        gas_price: 7,
-        miner_private_key: "0x08a1aa1bef5948f97454d6ca9c4b96c07b23a666267b3c5457040510ac19cdb0",
+        vault_host: Config::load_env(ConfigEnv::VAULT_HOST),
+        vault_token: Config::load_env(ConfigEnv::VAULT_TOKEN),
+        eth_node_host: Config::load_env(ConfigEnv::ETH_NODE_HOST),
+        chain_id: Config::load_env(ConfigEnv::CHAIN_ID)
+            .parse::<u128>()
+            .unwrap_or(86532),
+        gas_limit: Config::load_env(ConfigEnv::GAS_LIMIT)
+            .parse::<u128>()
+            .unwrap_or(1071003),
+        gas_price: Config::load_env(ConfigEnv::GAS_PRICE)
+            .parse::<u128>()
+            .unwrap_or(25000),
+        miner_private_key: Config::load_env(ConfigEnv::MINER_PRIVATE_KEY),
     }
 }

@@ -49,6 +49,11 @@ certificatesResolvers:
         entryPoint: web
 
 tls:
+  # stores:
+  #   default:
+  #     defaultCertificate:
+  #       certFile: /etc/traefik/certs/www.i-proof.com.tw2022.crt
+  #       keyFile: /etc/traefik/certs/www.i-proof.com.tw2022.key
   options:
     default:
       minVersion: VersionTLS12
