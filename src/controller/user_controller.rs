@@ -23,7 +23,7 @@ use web3::types::Address;
 /// Test route.
 #[openapi]
 #[get("/")]
-pub fn index(_token: Token<'_>) -> &'static str {
+pub async fn index(_token: Token<'_>) -> &'static str {
     "Hello, world!"
 }
 

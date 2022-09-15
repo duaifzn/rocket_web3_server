@@ -11,7 +11,7 @@ pub fn local() -> Config<'static> {
         mongodb_database_name: "dev",
         vault_host: Cow::Borrowed("localhost:30305"),
         vault_token: Cow::Borrowed("s.xkWVuDteFqFTFjhOvcQp1oFR"),
-        eth_node_host: Cow::Borrowed("20.231.59.102:8545"),
+        eth_node_host: Cow::Borrowed("211.73.81.132:8545,211.73.81.57:8545,211.73.81.45:8545"),
         chain_id: 86530,
         gas_limit: 1071003,
         gas_price: 7,

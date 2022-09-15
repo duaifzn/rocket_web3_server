@@ -4,7 +4,6 @@ extern crate rocket;
 extern crate lazy_static;
 use rocket_okapi::openapi_get_routes;
 use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
-
 mod config;
 mod contract_interface;
 mod controller;
@@ -23,6 +22,8 @@ lazy_static! {
 }
 #[launch]
 async fn rocket() -> _ {
+    let eth_node = util::eth_node::EthNode::connect();
+    eth_node.check_eth_node_health();
     rocket::build()
         .attach(middleware::cors::Cors)
         .mount(
@@ -59,7 +60,7 @@ async fn rocket() -> _ {
             }),
         )
         .manage(database::Mongo::connect().await)
-        .manage(util::eth_node::EthNode::connect())
+        .manage(eth_node)
         .manage(util::vault::Vault::new(
             &CONFIG.vault_host,
             &CONFIG.vault_token,

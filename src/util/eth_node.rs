@@ -2,38 +2,77 @@ use crate::config::Config;
 use eth_keystore::decrypt_key;
 use hex::FromHex;
 use rocket::futures::future::join_all;
+use rocket::tokio::{self, sync::RwLock};
 use rocket::tokio::time::{sleep, Duration};
 use secp256k1::SecretKey;
 use sha2::{Digest, Sha256};
 use std::path::Path;
 use std::str::FromStr;
-use web3::contract::{Contract};
+use std::sync::Arc;
+use std::net::TcpStream;
+use web3::contract::Contract;
 use web3::ethabi::{Events, Log, RawLog};
 use web3::transports::Http;
 use web3::types::{
     Address, BlockId, BlockNumber, Bytes, FilterBuilder, Transaction, TransactionId,
-    TransactionParameters, TransactionReceipt, TransactionRequest, H160, H256, U256,
+    TransactionParameters, TransactionReceipt, H160, H256, U256,
 };
 use web3::Error::{Decoder, InvalidResponse};
 use web3::{self, Result, Web3};
 lazy_static! {
     static ref CONFIG: Config<'static> = Config::load();
 }
+#[derive(Debug)]
 pub struct EthNode {
-    pub node_url: String,
-    pub web3: Web3<Http>,
+    pub node_url: Arc<RwLock<String>>,
+    pub web3: Arc<RwLock<Web3<Http>>>,
 }
 
 impl EthNode {
     pub fn connect() -> Self {
-        let node_url = format!("http://{}", CONFIG.eth_node_host);
+        let node_url_string: Vec<&str> = CONFIG.eth_node_host.split(',').collect();
+        let node_url = format!("http://{}", node_url_string[0]);
         let transport = Http::new(&node_url).unwrap();
         let web3 = Web3::new(transport);
 
         Self {
-            node_url: node_url,
-            web3: web3,
+            node_url: Arc::new(RwLock::new(node_url)),
+            web3: Arc::new(RwLock::new(web3)),
         }
+    }
+    pub fn check_eth_node_health(&self) {
+        let node_url_clone = Arc::clone(&self.node_url);
+        let web3_clone = Arc::clone(&self.web3);
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+                let node_urls: Vec<&str> = CONFIG.eth_node_host.split(',').collect();
+                let first_node_url = node_urls[0];
+                let node_url_temp = node_urls.into_iter().find(|node_url| {
+                    let connect_test = TcpStream::connect(node_url);
+                    match connect_test {
+                        Ok(_) => return true,
+                        Err(_) => return false,
+                    }
+                });
+                let node_url = match node_url_temp {
+                    Some(url) => url,
+                    None => {
+                        println!(
+                            "{:?}",
+                            web3::error::Error::InvalidResponse(
+                                "All node urls is invalid".to_string()
+                            )
+                        );
+                        return first_node_url.to_string();
+                    }
+                };
+                let mut a = node_url_clone.write().await;
+                *a = format!("http://{}", node_url);
+                let mut b = web3_clone.write().await;
+                *b = Web3::new(Http::new(&format!("http://{}", node_url)).unwrap())
+            }
+        });
     }
     pub fn hex_str_to_bytes20(param: &str) -> web3::Result<[u8; 20]> {
         let temp = Vec::from_hex(param).unwrap();
@@ -61,15 +100,27 @@ impl EthNode {
         hash_data
     }
     pub async fn get_accounts(&self) -> Result<Vec<H160>> {
-        let accounts = self.web3.eth().accounts().await?;
+        let accounts = self.web3.read().await.eth().accounts().await?;
         Ok(accounts)
     }
     pub async fn get_account_balance(&self, account: Address) -> Result<U256> {
-        let balance = self.web3.eth().balance(account, None).await?;
+        let balance = self
+            .web3
+            .read()
+            .await
+            .eth()
+            .balance(account, None)
+            .await?;
         Ok(balance)
     }
     pub async fn create_one_account(&self, password: &str) -> Result<H160> {
-        let new_account = self.web3.personal().new_account(password).await?;
+        let new_account = self
+            .web3
+            .read()
+            .await
+            .personal()
+            .new_account(password)
+            .await?;
         Ok(new_account)
     }
     pub fn keystore_to_private_key(keystore_file: &str, password: &str) -> String {
@@ -81,6 +132,8 @@ impl EthNode {
         let new_address = Self::hex_str_to_bytes20(&address).unwrap();
         let nonce_latest = self
             .web3
+            .read()
+            .await
             .eth()
             .transaction_count(H160::from(new_address), Some(BlockNumber::Latest))
             .await?;
@@ -88,11 +141,17 @@ impl EthNode {
     }
     pub async fn get_transaction(&self, tx_address: H256) -> Result<Option<Transaction>> {
         let address = TransactionId::Hash(tx_address);
-        let result = self.web3.eth().transaction(address).await?;
+        let result = self.web3.read().await.eth().transaction(address).await?;
         Ok(result)
     }
     pub async fn send_raw_transaction(&self, tx: Bytes) -> Result<H256> {
-        let result = self.web3.eth().send_raw_transaction(tx).await?;
+        let result = self
+            .web3
+            .read()
+            .await
+            .eth()
+            .send_raw_transaction(tx)
+            .await?;
         Ok(result)
     }
     pub async fn transfer_1000eth_to_account(&self, address: Address) -> Result<H256> {
@@ -106,11 +165,15 @@ impl EthNode {
         };
         let signed = self
             .web3
+            .read()
+            .await
             .accounts()
             .sign_transaction(tx_object, &private_key)
             .await?;
         let result = self
             .web3
+            .read()
+            .await
             .eth()
             .send_raw_transaction(signed.raw_transaction)
             .await?;
@@ -123,7 +186,13 @@ impl EthNode {
     ) -> Result<H160> {
         loop {
             sleep(Duration::from_secs(2)).await;
-            let receipt = self.web3.eth().transaction_receipt(tx_addres).await?;
+            let receipt = self
+                .web3
+                .read()
+                .await
+                .eth()
+                .transaction_receipt(tx_addres)
+                .await?;
             match receipt {
                 Some(receipt) => match receipt.contract_address {
                     Some(contract_address) => return Ok(contract_address),
@@ -139,6 +208,8 @@ impl EthNode {
     ) -> Result<(Option<Vec<H256>>, Option<U256>)> {
         let block = self
             .web3
+            .read()
+            .await
             .eth()
             .block_with_txs(BlockId::Hash(blockhash))
             .await?;
@@ -156,7 +227,13 @@ impl EthNode {
         txs: Vec<H256>,
     ) -> Vec<Option<TransactionReceipt>> {
         let process = txs.to_vec().into_iter().map(|tx| async move {
-            let result = self.web3.eth().transaction_receipt(tx).await;
+            let result = self
+                .web3
+                .read()
+                .await
+                .eth()
+                .transaction_receipt(tx)
+                .await;
             match result {
                 Ok(receipt) => receipt,
                 Err(err) => {
@@ -171,12 +248,20 @@ impl EthNode {
         &self,
         tx_address: H256,
     ) -> Result<Option<TransactionReceipt>> {
-        let receipt = self.web3.eth().transaction_receipt(tx_address).await?;
+        let receipt = self
+            .web3
+            .read()
+            .await
+            .eth()
+            .transaction_receipt(tx_address)
+            .await?;
         Ok(receipt)
     }
     pub async fn get_blockhash_timestamp(&self, blockhash: H256) -> Result<Option<U256>> {
         let block = self
             .web3
+            .read()
+            .await
             .eth()
             .block_with_txs(BlockId::Hash(blockhash))
             .await?;
@@ -188,6 +273,8 @@ impl EthNode {
     pub async fn get_blockhash_parent_hash(&self, blockhash: H256) -> Result<Option<H256>> {
         let block = self
             .web3
+            .read()
+            .await
             .eth()
             .block_with_txs(BlockId::Hash(blockhash))
             .await?;
@@ -206,10 +293,10 @@ impl EthNode {
         }
         return (None, None);
     }
-    pub fn connect_contract_of_proof_of_existence(&self, address: &str) -> Contract<Http> {
+    pub async fn connect_contract_of_proof_of_existence(&self, address: &str) -> Contract<Http> {
         let contract_address = Address::from_str(address).unwrap();
         let contract = Contract::from_json(
-            self.web3.eth(),
+            self.web3.read().await.eth(),
             contract_address,
             include_bytes!("../../contract/abi.json"),
         )
@@ -229,26 +316,36 @@ impl EthNode {
             .to_block(BlockNumber::Latest)
             .address(vec![address])
             .build();
-        let filter = self.web3.eth_filter().create_logs_filter(filter).await?;
+        let filter = self
+            .web3
+            .read()
+            .await
+            .eth_filter()
+            .create_logs_filter(filter)
+            .await?;
         let logs = filter.logs().await?;
-        for log in logs{
-            let time = self.get_blockhash_timestamp(log.block_hash.unwrap()).await?;
-            match time{
-                Some(t) =>{
+        for log in logs {
+            let time = self
+                .get_blockhash_timestamp(log.block_hash.unwrap())
+                .await?;
+            match time {
+                Some(t) => {
                     let a = format!("{:?}", t).parse::<u128>().unwrap();
-                    let blocknumber = format!("{:?}", log.block_number.unwrap()).parse::<u128>().unwrap();
-                    if a >= start && a <= end{
-                        if min == 0{
+                    let blocknumber = format!("{:?}", log.block_number.unwrap())
+                        .parse::<u128>()
+                        .unwrap();
+                    if a >= start && a <= end {
+                        if min == 0 {
                             min = blocknumber;
                         }
-                        if blocknumber < min{
+                        if blocknumber < min {
                             min = blocknumber;
                         }
-                        if blocknumber > max{
+                        if blocknumber > max {
                             max = blocknumber;
                         }
                     }
-                },
+                }
                 None => {}
             }
         }
