@@ -17,3 +17,6 @@ pub fn prod() ->Config<'static>{
         miner_private_key: "0x08a1aa1bef5948f97454d6ca9c4b96c07b23a666267b3c5457040510ac19cdb0",
     }
 }
+// vault_host: "10.26.9.27:30305",
+// vault_token: "s.qgNdGJiWrNf2my3n6AXaNAQY",
+// eth_node_host: "10.26.9.27:8545",

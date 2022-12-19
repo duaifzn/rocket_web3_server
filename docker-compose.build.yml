@@ -1,0 +1,7 @@
+version: '3.9'
+services:
+  web3-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: rocket_web3_server_web3-server:1.0.0
