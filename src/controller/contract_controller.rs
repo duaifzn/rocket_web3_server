@@ -39,8 +39,10 @@ pub async fn notarize_hash(
         .await
         .map_err(error_handle_of_reqwest)?;
 
-    let key = EthNode::hex_str_to_bytes32(&body.key).map_err(error_handle_of_web3)?;
-    let value = EthNode::hex_str_to_bytes32(&body.value).map_err(error_handle_of_web3)?;
+    let key =
+        EthNode::hex_str_to_bytes32(&body.key.replace("0x", "")).map_err(error_handle_of_web3)?;
+    let value =
+        EthNode::hex_str_to_bytes32(&body.value.replace("0x", "")).map_err(error_handle_of_web3)?;
 
     let data = contract
         .abi()
@@ -126,7 +128,7 @@ pub async fn get_hash(
         .map_err(error_handle_of_web3)?;
     let account_address = EthNode::hex_str_to_bytes20(&res.data.address.replace("0x", ""))
         .map_err(error_handle_of_web3)?;
-    let key = EthNode::hex_str_to_bytes32(&key).map_err(error_handle_of_web3)?;
+    let key = EthNode::hex_str_to_bytes32(&key.replace("0x", "")).map_err(error_handle_of_web3)?;
 
     let data = contract
         .abi()
